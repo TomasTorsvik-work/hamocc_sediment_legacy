@@ -1,6 +1,6 @@
 #if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
 subroutine sediment(kpie,kpje,kpke,pglat,                   &
-     &              ptho,psao,ppao,prho,pddpo,pdlxp,pdlyp,  &
+     &              ptho,psao,prho,pddpo,pdlxp,pdlyp,  &
      &              omask)
 
 !-----------------------------------------------------------------------
@@ -48,7 +48,6 @@ integer, intent(in)  :: kpie,kpje,kpke
 real, intent(in)     :: pglat  (kpie,kpje)
 real, intent(in)     :: ptho   (kpie,kpje,kpke)
 real, intent(in)     :: psao   (kpie,kpje,kpke)
-real, intent(in)     :: ppao   (kpie,kpje)
 real, intent(in)     :: prho   (kpie,kpje,kpke)
 real, intent(in)     :: pddpo  (kpie,kpje,kpke)
 real, intent(in)     :: pdlxp  (kpie,kpje)

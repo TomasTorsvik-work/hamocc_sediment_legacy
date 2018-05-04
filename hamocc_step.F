@@ -184,7 +184,7 @@ c#  endif
          IF (mnproc.eq.1) WRITE(io_stdo_bgc,*)
      .            'hamocc_step(): sediment spin-up starting'
          call sediment(idm,jdm,kdm,pglat,
-     .            bgc_t,bgc_s,bgc_slp,bgc_rho,bgc_dp,bgc_dx,bgc_dy,
+     .            bgc_t,bgc_s,bgc_rho,bgc_dp,bgc_dx,bgc_dy,
      .            omask)
          IF (mnproc.eq.1) WRITE(io_stdo_bgc,*)
      .            'hamocc_step(): sediment spin-up ended'
