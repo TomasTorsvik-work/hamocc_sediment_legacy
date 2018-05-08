@@ -511,6 +511,22 @@ if (kplmon == 1) then ! only for first month
      &    10,'kmol/m^2/s',21,'Sedimentation of dust',       &
      &    rmissing,77,io_stdo_bgc)
 
+      CALL NETCDF_DEF_VARDB(ncid,9,'bgc_t_kbo',3,ncdimst,ncvarid,          &
+     &    6,'degr C',33,'Temperature in the bottom gridbox',       &
+     &    rmissing,73,io_stdo_bgc)
+
+      CALL NETCDF_DEF_VARDB(ncid,9,'bgc_s_kbo',3,ncdimst,ncvarid,          &
+     &    3,'psu',30,'Salinity in the bottom gridbox',       &
+     &    rmissing,74,io_stdo_bgc)
+
+!      CALL NETCDF_DEF_VARDB(ncid,11,'bgc_rho_kbo',3,ncdimst,ncvarid,          &
+!     &    6,'g/cm^3',29,'Density in the bottom gridbox',       &
+!     &    rmissing,75,io_stdo_bgc)
+
+      CALL NETCDF_DEF_VARDB(ncid,7,'co3_kbo',3,ncdimst,ncvarid,          &
+     &    6,'mol/kg',41,'Dissolved carbonate in the bottom gridbox',       &
+     &    rmissing,76,io_stdo_bgc)
+
    IF(mnproc==1 .AND. IOTYPE==0) THEN
       ncstat = NF90_ENDDEF(ncid)
       
@@ -625,6 +641,10 @@ endif ! only for first month
    CALL write_netcdf_var(ncid,'prcaca',prcaca_avg(1,1),1,kplmon)
    CALL write_netcdf_var(ncid,'silpro',silpro_avg(1,1),1,kplmon)
    CALL write_netcdf_var(ncid,'produs',produs_avg(1,1),1,kplmon)
+   CALL write_netcdf_var(ncid,'bgc_t_kbo',bgc_t_kbo_avg(1,1),1,kplmon)
+   CALL write_netcdf_var(ncid,'bgc_s_kbo',bgc_s_kbo_avg(1,1),1,kplmon)
+   !CALL write_netcdf_var(ncid,'bgc_rho_kbo',bgc_rho_kbo_avg(1,1),1,kplmon)
+   CALL write_netcdf_var(ncid,'co3_kbo',co3_kbo_avg(1,1),1,kplmon)
 
    IF(mnproc==1 .AND. IOTYPE==0) THEN
       IF(mnproc==1) THEN

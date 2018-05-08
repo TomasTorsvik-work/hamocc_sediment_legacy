@@ -11,7 +11,7 @@ c
 #if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
      .                        , rmasko, nstep_in_month
      .                        , must_read_clim, maxyear_ocean
-      use mo_carbch,      only: ocetra, keqb
+      use mo_carbch,      only: ocetra, keqb, co3
       use mo_param1_bgc,  only: nocetra, idet, icalc, iopal, ifdust
       use mo_biomod,      only: kbo, bolay, wpoc, wmin, wmax, wdust
      .                        , wlin, wopal, wcal
@@ -91,14 +91,22 @@ c --- Read the bottom seawater climatology from the netCDF forcing file
          prcaca_clim(:,:,imonth) = prcaca_avg
          silpro_clim(:,:,imonth) = silpro_avg
          produs_clim(:,:,imonth) = produs_avg
+         bgc_t_kbo_clim(:,:,imonth) = bgc_t_kbo_avg
+         bgc_s_kbo_clim(:,:,imonth) = bgc_s_kbo_avg
+         bgc_rho_kbo_clim(:,:,imonth) = bgc_rho_kbo_avg
+         co3_kbo_clim(:,:,imonth) = co3_kbo_avg
       enddo
       ocetra_kbo_avg = 0.0
-      bolay_avg = 0.0
+      bolay_avg = 4000.0 ! maximum of lowest bottom layer thickness
       keqb_avg  = 0.0
       prorca_avg = 0.0
       prcaca_avg = 0.0
       silpro_avg = 0.0
       produs_avg = 0.0
+      bgc_t_kbo_avg = 0.0
+      bgc_s_kbo_avg = 0.0
+      bgc_rho_kbo_avg = 0.0
+      co3_kbo_avg = 0.0
       else
 c# else
 c --- Accumulate the bottom seawater fields from HAMOCC
@@ -112,8 +120,17 @@ c     call calc_bot(idm,jdm,kdm,bgc_dp) ! not needed (kbo, bolay already current
             enddo
          enddo
       enddo
+      do j = 1, jdm
+         do i = 1, idm
+            bgc_t_kbo_avg(i,j) = bgc_t_kbo_avg(i,j) + bgc_t(i,j,kbo(i,j))
+            bgc_s_kbo_avg(i,j) = bgc_s_kbo_avg(i,j) + bgc_s(i,j,kbo(i,j))
+            bgc_rho_kbo_avg(i,j) = bgc_rho_kbo_avg(i,j) + bgc_rho(i,j,kbo(i,j))
+            co3_kbo_avg(i,j) = co3_kbo_avg(i,j) + co3(i,j,kbo(i,j))
+            bolay_avg(i,j) = min(bolay_avg(i,j), bolay(i,j))
+         enddo
+      enddo
       keqb_avg  = keqb_avg  + keqb
-      bolay_avg = bolay_avg + bolay
+      !bolay_avg = bolay_avg + bolay
 
 c --- Calculate the day of month
       nday_of_month = nday_of_year
@@ -126,11 +143,15 @@ c --- Calculate tracer monthly average
          IF (mnproc.eq.1) WRITE(io_stdo_bgc,*)
      .      'hamocc_step(): end of month, set tracer avg for last month'
          ocetra_kbo_avg = ocetra_kbo_avg / nstep_in_month
-         bolay_avg = bolay_avg / nstep_in_month
+         !bolay_avg = bolay_avg / nstep_in_month
          keqb_avg = keqb_avg / nstep_in_month
+         bgc_t_kbo_avg = bgc_t_kbo_avg / nstep_in_month
+         bgc_s_kbo_avg = bgc_s_kbo_avg / nstep_in_month
+         bgc_rho_kbo_avg = bgc_rho_kbo_avg / nstep_in_month
+         co3_kbo_avg = co3_kbo_avg / nstep_in_month
          do j = 1, jdm     ! Here we assume the WLIN case.
             do i = 1, idm
-               wpoc = min(wmin+wlin*bolay(i,j),wmax)
+               wpoc = min(wmin+wlin*bolay_avg(i,j),wmax)
                prorca_avg(i,j)=ocetra_kbo_avg(i,j,idet  )*wpoc
                prcaca_avg(i,j)=ocetra_kbo_avg(i,j,icalc )*wcal
                silpro_avg(i,j)=ocetra_kbo_avg(i,j,iopal )*wopal
@@ -150,13 +171,21 @@ c --- -- Write tracer monthly averages to netCDF file
          prcaca_clim(:,:,nmonth) = prcaca_avg
          silpro_clim(:,:,nmonth) = silpro_avg
          produs_clim(:,:,nmonth) = produs_avg
+         bgc_t_kbo_clim(:,:,nmonth) = bgc_t_kbo_avg
+         bgc_s_kbo_clim(:,:,nmonth) = bgc_s_kbo_avg
+         bgc_rho_kbo_clim(:,:,nmonth) = bgc_rho_kbo_avg
+         co3_kbo_clim(:,:,nmonth) = co3_kbo_avg
          ocetra_kbo_avg = 0.0
-         bolay_avg = 0.0
+         bolay_avg = 4000.0
          keqb_avg  = 0.0
          prorca_avg = 0.0
          prcaca_avg = 0.0
          silpro_avg = 0.0
          produs_avg = 0.0
+         bgc_t_kbo_avg = 0.0
+         bgc_s_kbo_avg = 0.0
+         bgc_rho_kbo_avg = 0.0
+         co3_kbo_avg = 0.0
       endif ! end of month routines
       endif
 c# endif
@@ -184,7 +213,7 @@ c#  endif
          IF (mnproc.eq.1) WRITE(io_stdo_bgc,*)
      .            'hamocc_step(): sediment spin-up starting'
          call sediment(idm,jdm,kdm,pglat,
-     .            bgc_t,bgc_s,bgc_rho,bgc_dp,bgc_dx,bgc_dy,
+     .            bgc_dp,bgc_dx,bgc_dy,
      .            omask)
          IF (mnproc.eq.1) WRITE(io_stdo_bgc,*)
      .            'hamocc_step(): sediment spin-up ended'

@@ -80,6 +80,14 @@
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: keqb_clim
       REAL, DIMENSION (:,:),     ALLOCATABLE :: bolay_avg
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: bolay_clim
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: bgc_t_kbo_avg
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: bgc_t_kbo_clim
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: bgc_s_kbo_avg
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: bgc_s_kbo_clim
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: bgc_rho_kbo_avg
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: bgc_rho_kbo_clim
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: co3_kbo_avg
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3_kbo_clim
 
       REAL :: sedict,rno3,o2ut,ansed,sedac,sedifti
       REAL :: calcwei, opalwei, orgwei
@@ -199,8 +207,36 @@
         if(errstat.ne.0) stop 'not enough memory bolay_avg'
         ALLOCATE (bolay_clim(kpie,kpje,12),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory bolay_clim'
-        bolay_avg(:,:) = 0.0
+        bolay_avg(:,:) = 4000.0 ! maximum of lowest bottom layer thickness
         bolay_clim(:,:,:) = 0.0
+
+        ALLOCATE (bgc_t_kbo_avg(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory bgc_t_kbo_avg'
+        ALLOCATE (bgc_t_kbo_clim(kpie,kpje,12),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory bgc_t_kbo_clim'
+        bgc_t_kbo_avg(:,:) = 0.0
+        bgc_t_kbo_clim(:,:,:) = 0.0
+
+        ALLOCATE (bgc_s_kbo_avg(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory bgc_s_kbo_avg'
+        ALLOCATE (bgc_s_kbo_clim(kpie,kpje,12),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory bgc_s_kbo_clim'
+        bgc_s_kbo_avg(:,:) = 0.0
+        bgc_s_kbo_clim(:,:,:) = 0.0
+
+        ALLOCATE (bgc_rho_kbo_avg(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory bgc_rho_kbo_avg'
+        ALLOCATE (bgc_rho_kbo_clim(kpie,kpje,12),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory bgc_rho_kbo_clim'
+        bgc_rho_kbo_avg(:,:) = 0.0
+        bgc_rho_kbo_clim(:,:,:) = 0.0
+
+        ALLOCATE (co3_kbo_avg(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory co3_kbo_avg'
+        ALLOCATE (co3_kbo_clim(kpie,kpje,12),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory co3_kbo_clim'
+        co3_kbo_avg(:,:) = 0.0
+        co3_kbo_clim(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variables keqb_* ...'

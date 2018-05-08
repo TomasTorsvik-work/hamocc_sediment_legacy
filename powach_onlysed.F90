@@ -1,4 +1,4 @@
-      SUBROUTINE powach_onlysed(kpie,kpje,kpke,pdlxp,pdlyp,psao,prho,omask,imonth)
+      SUBROUTINE powach_onlysed(kpie,kpje,kpke,pdlxp,pdlyp,omask,imonth)
 
 !
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/powach.f90,v $\\
@@ -37,11 +37,10 @@
 !     *INTEGER* *kpie*    - 1st dimension of model grid.
 !     *INTEGER* *kpje*    - 2nd dimension of model grid.
 !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-!     *REAL*    *psao*    - salinity [psu].
-!     *REAL*    *prho*    - seawater density [g/cm^3].
-!     *REAL*    *pwo*     - vertical velocity in scalar points [m/s].
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
+!     *REAL*    *omask*   - ocean mask.
+!     *REAL*    *imonth*  - month of year.
 !
 !     Externals
 !     ---------
@@ -62,9 +61,6 @@
 
       INTEGER :: i,j,k,l
       INTEGER :: kpie,kpje,kpke
-
-      REAL :: psao(kpie,kpje,kpke)
-      REAL :: prho(kpie,kpje,kpke)
 
       REAL :: sedb1(kpie,0:ks),sediso(kpie,0:ks)
       REAL :: solrat(kpie,ks),powcar(kpie,ks)
@@ -371,8 +367,8 @@
       DO 1 K=1,KS
       DO 1 i=1,kpie
          IF(omask(i,j).GT.0.5) THEN
-            saln= psao(i,j,kbo(i,j))
-            rrho= prho(i,j,kbo(i,j))
+            saln= bgc_s_kbo_clim(i,j,imonth)
+            rrho= bgc_rho_kbo_clim(i,j,imonth)
             alk = (powtra(i,j,k,ipowaal)-(anaerob(i,k)+aerob(i,k))*16.)  / rrho
             c   = (powtra(i,j,k,ipowaic)+(anaerob(i,k)+aerob(i,k))*122.) / rrho
             sit =  powtra(i,j,k,ipowasi) / rrho
@@ -418,7 +414,7 @@
          IF(omask(i,j).GT.0.5) THEN
             satlev=keqb_clim(11,i,j,imonth)/calcon+2.e-5
             undsa=MAX(satlev-powcar(i,1),0.)
-            sedb1(i,0)=bolay_clim(i,j,imonth)*(satlev-co3(i,j,kbo(i,j)))             &
+            sedb1(i,0)=bolay_clim(i,j,imonth)*(satlev-co3_kbo_clim(i,j,imonth))             &
      &                 *bolven(i)       
             solrat(i,1)=                                                 &
      &         (sedlay(i,j,1,isssc12)+prcaca_clim(i,j,imonth)/(porsol(1)*seddw(1)))  &

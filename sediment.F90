@@ -1,6 +1,6 @@
 #if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
 subroutine sediment(kpie,kpje,kpke,pglat,                   &
-     &              ptho,psao,prho,pddpo,pdlxp,pdlyp,  &
+     &              pddpo,pdlxp,pdlyp,  &
      &              omask)
 
 !-----------------------------------------------------------------------
@@ -46,9 +46,6 @@ implicit none
 !
 integer, intent(in)  :: kpie,kpje,kpke
 real, intent(in)     :: pglat  (kpie,kpje)
-real, intent(in)     :: ptho   (kpie,kpje,kpke)
-real, intent(in)     :: psao   (kpie,kpje,kpke)
-real, intent(in)     :: prho   (kpie,kpje,kpke)
 real, intent(in)     :: pddpo  (kpie,kpje,kpke)
 real, intent(in)     :: pdlxp  (kpie,kpje)
 real, intent(in)     :: pdlyp  (kpie,kpje)
@@ -69,7 +66,7 @@ do iyear = 1, maxyear_sediment
    nyear_global = nyear_global + 1
    IF (mnproc.eq.1) WRITE(io_stdo_bgc,*) 'sediment(): nyear_global = ', nyear_global
    do imonth = 1, 12
-      CALL powach_onlysed(kpie,kpje,kpke,pdlxp,pdlyp,psao,prho,omask,imonth)
+      CALL powach_onlysed(kpie,kpje,kpke,pdlxp,pdlyp,omask,imonth)
 
 #ifdef PBGC_CK_TIMESTEP
       IF (mnproc.eq.1) THEN
@@ -78,6 +75,9 @@ do iyear = 1, maxyear_sediment
       ENDIF
       CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 #endif
+
+!     hamocc4bcm() calls CARCHM(), which includes code for sediment C-14 decay.
+!     This should be added (TODO, e.g., here) when isotopes are included. - MvH
 
 !     sediment is shifted every sediment() timestep (Euler)
       CALL SEDSHI(kpie,kpje,omask)

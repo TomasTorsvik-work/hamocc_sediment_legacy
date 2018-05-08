@@ -189,6 +189,10 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
    CALL read_netcdf_var(ncid,'prcaca',prcaca_avg(1,1),1,kplmon,iotype)
    CALL read_netcdf_var(ncid,'silpro',silpro_avg(1,1),1,kplmon,iotype)
    CALL read_netcdf_var(ncid,'produs',produs_avg(1,1),1,kplmon,iotype)
+   CALL read_netcdf_var(ncid,'bgc_t_kbo',bgc_t_kbo_avg(1,1),1,kplmon,iotype)
+   CALL read_netcdf_var(ncid,'bgc_s_kbo',bgc_s_kbo_avg(1,1),1,kplmon,iotype)
+   CALL read_netcdf_var(ncid,'bgc_rho_kbo',bgc_rho_kbo_avg(1,1),1,kplmon,iotype)
+   CALL read_netcdf_var(ncid,'co3_kbo',co3_kbo_avg(1,1),1,kplmon,iotype)
 
    IF(mnproc==1 .AND. IOTYPE==0) THEN
       IF(mnproc==1) THEN
