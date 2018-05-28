@@ -63,7 +63,6 @@
       
       REAL :: pdlxp(kpie,kpje),pdlyp(kpie,kpje),omask(kpie,kpje)
       INTEGER :: imonth
-      REAL :: aprior                                  ! start value of oceanic tracer in bottom layer
       
 !ik accelerated sediment
 !ik needed for boundary layer ventilation in fast sediment routine      
@@ -78,7 +77,7 @@
       zcoeflo(ks)=0.0                                ! diffusion coefficient for bottom sediment layer
 
 !$OMP PARALLEL DO                            &                
-!$OMP&PRIVATE(bolven,tredsy,sedb1,aprior,iv_oc)
+!$OMP&PRIVATE(bolven,tredsy,sedb1,iv_oc)
       DO 11000 j=1,kpje
 
 ! calculate bottom ventilation rate for scaling of sediment-water exchange
