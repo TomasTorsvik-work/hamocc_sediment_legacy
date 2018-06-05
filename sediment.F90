@@ -41,6 +41,7 @@ use mo_sedmnt
 implicit none
 
 #include "common_clndr.h90"   ! F90 - MvH
+#include "common_bgcs.h90"    ! F90 - MvH
 
 ! Function arguments; see hamocc4bcm.F90 for variable description
 !
@@ -103,6 +104,14 @@ do iyear = 1, maxyear_sediment
 
    enddo
 enddo
+
+! update both time levels before returning to full model (leapfrog scheme)
+sedlay2(:,:,1:ks,:)      = sedlay(:,:,:,:)
+sedlay2(:,:,ks+1:2*ks,:) = sedlay(:,:,:,:)
+powtra2(:,:,1:ks,:)      = powtra(:,:,:,:)
+powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:)
+burial2(:,:,1,:)         = burial(:,:,:)
+burial2(:,:,2,:)         = burial(:,:,:)
 
 !-----------------------------------------------------------------------
 return
