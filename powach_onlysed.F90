@@ -252,7 +252,7 @@
             sedlay(i,j,1,issso14)                                     &
      &      =sedlay(i,j,1,issso14)+pror14(i,j)/(porsol(1)*seddw(1))
 #endif
-         prorca_clim(i,j,imonth)=0.
+         !!prorca_clim(i,j,imonth)=0.
 #ifdef __c_isotopes
          pror13(i,j)=0.
          pror14(i,j)=0.
@@ -517,16 +517,16 @@
 !$OMP PARALLEL DO  
        DO 91 j=1,kpje
        DO 91 i=1,kpie
-         silpro_clim(i,j,imonth)=0.
-         prorca_clim(i,j,imonth)=0.
+         !!silpro_clim(i,j,imonth)=0.
+         !!prorca_clim(i,j,imonth)=0.
 #ifdef __c_isotopes
          pror13(i,j)=0.
          pror14(i,j)=0.
          prca13(i,j)=0.
          prca14(i,j)=0.
 #endif
-         prcaca_clim(i,j,imonth)=0.
-         produs_clim(i,j,imonth)=0.
+         !!prcaca_clim(i,j,imonth)=0.
+         !!produs_clim(i,j,imonth)=0.
 91     CONTINUE
 !$OMP END PARALLEL DO
 

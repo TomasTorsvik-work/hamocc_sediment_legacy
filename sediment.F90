@@ -79,7 +79,7 @@ do iyear = 1, maxyear_sediment
 !     hamocc4bcm() calls CARCHM(), which includes code for sediment C-14 decay.
 !     This should be added (TODO, e.g., here) when isotopes are included. - MvH
 
-!     sediment is shifted every sediment() timestep (Euler)
+!     sediment is shifted every sediment() timestep
       CALL SEDSHI(kpie,kpje,omask)
 
 !     accumulate sediments
