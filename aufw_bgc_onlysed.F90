@@ -1,3 +1,4 @@
+#if defined(SED_WCLIM)
 subroutine aufw_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
    &                       ,rstfnm)
 
@@ -670,3 +671,4 @@ endif ! only for first month
 
    RETURN
 end
+#endif

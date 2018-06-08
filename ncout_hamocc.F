@@ -7,6 +7,9 @@ c
       use mod_xc
       use mod_dia, only : diafnm,sigmar1,iotype
       use mo_control_bgc, only : dtbgc
+#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+     .                         , lrunsed, imonth, iyear
+#endif
       use mo_biomod, only: k0100,k0500,k1000,k2000,k4000
       use mo_bgcmean
 c      
@@ -37,6 +40,23 @@ c --- set time information
       datenum=time-time0-0.5*diagfq_bgc(iogrp)/nstep_in_day
 c
 c --- get file name
+#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+      if ( lrunsed ) then
+         if (.not.append2file(iogrp)) then
+            if ( imonth == 0 ) then
+               call diafnm(runid,runid_len,expcnf,"hsedy", ! mod_dia.F
+     .                     nstep_in_day+1,12.0,.false.,.true.,fname(iogrp))
+            else
+               call diafnm(runid, runid_len, expcnf, "hsedm",
+     .                     nstep_in_day+1,1.0,.true.,.false.,fname(iogrp))
+            endif
+            append2file(iogrp)=.true.
+            irec(iogrp)=1
+         else
+            irec(iogrp)=irec(iogrp)+1
+         endif
+      else
+#endif
       if (.not.append2file(iogrp)) then
         call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp)),
      .  nstep,filefq_bgc(iogrp)/real(nstep_in_day),filemon_bgc(iogrp),
@@ -46,6 +66,9 @@ c --- get file name
       else
         irec(iogrp)=irec(iogrp)+1
       endif
+#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+      endif
+#endif
       if (((fileann_bgc(iogrp).and.nday_of_year.eq.1.or.
      .  filemon_bgc(iogrp).and.nday.eq.1).and.mod(nstep,nstep_in_day)
      .  .le.1).or..not.(fileann_bgc(iogrp).or.filemon_bgc(iogrp)).and.

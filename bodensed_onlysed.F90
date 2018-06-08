@@ -1,3 +1,4 @@
+#if defined(SED_OFFLINE)
       SUBROUTINE BODENSED(kpie,kpje,kpke,pddpo)
 
 !
@@ -177,3 +178,4 @@
 
       RETURN
       END
+#endif

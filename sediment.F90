@@ -1,11 +1,11 @@
-#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+#if defined(SED_OFFLINE)
 subroutine sediment(kpie,kpje,kpke,pglat,                   &
      &              pddpo,pdlxp,pdlyp,  &
      &              omask)
 
 !-----------------------------------------------------------------------
 !
-! *MODULE sediment* - run sediment model for multiple timesteps
+! Run sediment model for multiple timesteps
 !
 ! Copyright (C) 2017 Marco van Hulten <Marco.Hulten@uib.no>
 !
@@ -34,7 +34,7 @@ subroutine sediment(kpie,kpje,kpke,pglat,                   &
 
 use mod_xc
 use mo_bgcmean
-use mo_control_bgc, only: io_stdo_bgc, nyear_global, maxyear_sediment
+use mo_control_bgc, only: io_stdo_bgc, nyear_global, maxyear_sediment, imonth, iyear
 use mo_param1_bgc 
 use mo_sedmnt
 
@@ -54,7 +54,16 @@ real, intent(in)     :: omask  (kpie,kpje)
 
 ! Local variables
 !
-integer :: iyear, imonth      ! timestepping over sediment only
+integer :: nday_save, nmonth_save   ! calendar variables outside sediment()
+integer :: nyear_save, nday_of_year_save, nd_in_m_2, nday_in_year_save
+
+! save calendar variables
+nday_save         = nday
+nmonth_save       = nmonth
+nyear_save        = nyear
+nday_of_year_save = nday_of_year
+nd_in_m_2         = nd_in_m(2)
+nday_in_year_save = nday_in_year
 
 !-----------------------------------------------------------------------
 !     Sediment module
@@ -67,7 +76,10 @@ do iyear = 1, maxyear_sediment
    nyear_global = nyear_global + 1
    IF (mnproc.eq.1) WRITE(io_stdo_bgc,*) 'sediment(): nyear_global = ', nyear_global
    do imonth = 1, 12
-      CALL powach_onlysed(kpie,kpje,kpke,pdlxp,pdlyp,omask,imonth)
+      !nstep = nstep + 1
+      call updcln_onlysed() ! do a monthly calendar update only within sediment()
+
+      CALL powach_onlysed(kpie,kpje,kpke,pdlxp,pdlyp,omask)
 
 #ifdef PBGC_CK_TIMESTEP
       IF (mnproc.eq.1) THEN
@@ -102,7 +114,21 @@ do iyear = 1, maxyear_sediment
       call accbur(jbursssc12,burial(1,1,isssc12))
       call accbur(jburssster,burial(1,1,issster))
 
+!     write monthly outputs (assuming first index is mo)
+      nacc_bgc(1) = 1
+      if (GLB_INVENTORY(1).ne.0)                                        &
+         &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+      call ncwrt_bgc(1) ! ncout_hamocc.F
+      nacc_bgc(1) = 0
    enddo
+
+!  write yearly outputs (assuming second index is yr)
+   nacc_bgc(2) = 1
+   if (GLB_INVENTORY(2).ne.0)                                        &
+      &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+   imonth = 0 ! triggers writing of yearly averages
+   call ncwrt_bgc(2) ! ncout_hamocc.F
+   nacc_bgc(2) = 0
 enddo
 
 ! update both time levels before returning to full model (leapfrog scheme)
@@ -112,6 +138,14 @@ powtra2(:,:,1:ks,:)      = powtra(:,:,:,:)
 powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:)
 burial2(:,:,1,:)         = burial(:,:,:)
 burial2(:,:,2,:)         = burial(:,:,:)
+
+! set calendar variables back to outer-sediment() values
+nday         = nday_save
+nmonth       = nmonth_save
+nyear        = nyear_save
+nday_of_year = nday_of_year_save
+nd_in_m(2)   = nd_in_m_2
+nday_in_year = nday_in_year_save
 
 !-----------------------------------------------------------------------
 return

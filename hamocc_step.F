@@ -8,9 +8,13 @@ c
       use mod_xc
       use mo_bgcmean
       use mo_control_bgc, only: nyear_global, is_end_of_day, io_stdo_bgc
+#if defined(SED_OFFLINE)
+     .                        , maxyear_ocean
+#endif
 #if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
      .                        , rmasko, nstep_in_month
-     .                        , must_read_clim, maxyear_ocean
+     .                        , must_read_clim
+     .                        , lrunsed, imonth
       use mo_carbch,      only: ocetra, keqb, co3
       use mo_param1_bgc,  only: nocetra, idet, icalc, iopal, ifdust
       use mo_biomod,      only: kbo, bolay, wpoc, wmin, wmax, wdust
@@ -29,8 +33,6 @@ c
 #if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
       integer :: i,j,iocetra
       character (len = *), parameter :: bscfnm = "bottom_seawater_clim.nc"
-      integer :: imonth
-      logical :: lrunsed = .false.
       integer :: nday_of_month                   ! current day of month
 #endif
 c
@@ -69,6 +71,9 @@ c --- Depending on the pre-processing keys, read or calculate (and
 c --- write to disk) a bottom seawater array needed as a forcing for the
 c --- subsequent sediment() spin-up routine.
 c --- ------------------------------------------------------------------
+
+c --- Default action is not to run sediment()
+      lrunsed = .false.
 
 # if defined(SED_RCLIM) && defined(SED_WCLIM)
       IF( mnproc==1 ) WRITE(io_stdo_bgc,*)
@@ -218,6 +223,7 @@ c#  endif
          IF (mnproc.eq.1) WRITE(io_stdo_bgc,*)
      .            'hamocc_step(): sediment spin-up ended'
       endif
+      lrunsed = .false.
 # endif
       must_read_clim = .false.
 

@@ -45,7 +45,11 @@
       INTEGER :: ldtbgc           !  time step number from bgc restart file
       INTEGER :: ldtrunbgc        !  actual time steps of run.
 #if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+      LOGICAL :: lrunsed = .false.!  whether to run the sediment spin-up code.
       INTEGER :: nstep_in_month   !  accumulation counter for SED_WCLIM.
+      INTEGER :: imonth, iyear    !  counters that must be available to ncwrt_bgc().
+#endif
+#if defined(SED_OFFLINE)
       INTEGER :: maxyear_sediment !  number of years for off-line sediment integration.
       INTEGER :: maxyear_ocean    !  number of years for full MICOM-HAMOCC integration.
 #endif

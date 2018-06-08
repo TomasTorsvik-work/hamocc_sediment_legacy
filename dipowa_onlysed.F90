@@ -1,4 +1,5 @@
-      SUBROUTINE dipowa_onlysed(kpie,kpje,kpke,pdlxp,pdlyp,omask,imonth)
+#if defined(SED_OFFLINE)
+      SUBROUTINE dipowa_onlysed(kpie,kpje,kpke,pdlxp,pdlyp,omask)
 
 !
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/dipowa.f90,v $\\
@@ -62,7 +63,6 @@
       REAL :: TREDSY(kpie,0:kpke,3)                   ! redsy for 'reduced system'?
       
       REAL :: pdlxp(kpie,kpje),pdlyp(kpie,kpje),omask(kpie,kpje)
-      INTEGER :: imonth
       
 !ik accelerated sediment
 !ik needed for boundary layer ventilation in fast sediment routine      
@@ -167,3 +167,4 @@
 
       RETURN
      END
+#endif

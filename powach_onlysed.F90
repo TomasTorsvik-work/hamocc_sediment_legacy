@@ -1,4 +1,5 @@
-      SUBROUTINE powach_onlysed(kpie,kpje,kpke,pdlxp,pdlyp,omask,imonth)
+#if defined(SED_OFFLINE)
+      SUBROUTINE powach_onlysed(kpie,kpje,kpke,pdlxp,pdlyp,omask)
 
 !
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/powach.f90,v $\\
@@ -40,7 +41,6 @@
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
 !     *REAL*    *omask*   - ocean mask.
-!     *REAL*    *imonth*  - month of year.
 !
 !     Externals
 !     ---------
@@ -67,7 +67,6 @@
       REAL :: aerob(kpie,ks),anaerob(kpie,ks)
       REAL :: pdlxp(kpie,kpje),pdlyp(kpie,kpje)
       REAL :: omask(kpie,kpje)
-      INTEGER :: imonth
 
       REAL :: disso, dissot, undsa, silsat, posol 
       REAL :: umfa,denit,saln,rrho,alk,c,sit,pt
@@ -161,7 +160,7 @@
 ! Solve for new undersaturation sediso, from current undersaturation sedb1,
 ! and first guess of new solid sediment solrat.     
 
-      CALL powadi_onlysed(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,imonth)
+      CALL powadi_onlysed(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
 
 ! Store the flux for budget.
 ! Add sedimentation to first layer.
@@ -237,7 +236,7 @@
 ! Solve for new O2 concentration sediso, from current concentration sedb1,
 ! and first guess of new solid sediment solrat.     
 
-      CALL powadi_onlysed(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,imonth)
+      CALL powadi_onlysed(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
 
 ! Store the flux for budget (opwflux).
 ! Add sedimentation to first layer.
@@ -440,7 +439,7 @@
 ! Solve for new undersaturation sediso, from current undersaturation sedb1,
 ! and first guess of new solid sediment solrat.     
 
-      CALL powadi_onlysed(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,imonth)
+      CALL powadi_onlysed(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
    
 ! There is no exchange between water and sediment with respect to co3 so far.
 ! Add sedimentation to first layer.
@@ -497,7 +496,7 @@
 8888  CONTINUE
 !$OMP END PARALLEL DO
 
-      CALL dipowa_onlysed(kpie,kpje,kpke,pdlxp,pdlyp,omask,imonth)
+      CALL dipowa_onlysed(kpie,kpje,kpke,pdlxp,pdlyp,omask)
 
 
 !ik add clay sedimentation onto sediment
@@ -532,3 +531,4 @@
 
       RETURN
       END
+#endif

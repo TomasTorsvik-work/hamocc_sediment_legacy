@@ -1,4 +1,5 @@
-      SUBROUTINE powadi_onlysed(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,imonth)
+#if defined(SED_OFFLINE)
+      SUBROUTINE powadi_onlysed(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
 
 !
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/powadi.f90,v $\\
@@ -58,7 +59,6 @@
       REAL :: bolven(kpie)
       REAL :: TREDSY(kpie,0:ks,3)
       REAL :: omask(kpie,kpje)
-      INTEGER :: imonth
       INTEGER :: kpie,kpje,i,j,k,l
       REAL :: asu,alo
 
@@ -120,3 +120,4 @@
 
       RETURN
       END
+#endif
