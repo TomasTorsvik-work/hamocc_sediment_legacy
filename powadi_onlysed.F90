@@ -63,9 +63,9 @@
       REAL :: asu,alo
 
       DO 1321 k=1,ks
-         asu=sedict*seddzi(k)*porwah(k)
+         asu=sedict*seddzi(k)*porwah(k) * dtsed/dtbgc
          alo=0.
-         IF(k.LT.ks)alo=sedict*seddzi(k+1)*porwah(k+1)
+         IF(k.LT.ks)alo=sedict*seddzi(k+1)*porwah(k+1) * dtsed/dtbgc
          DO 1321 i=1,kpie
             tredsy(i,k,1) = -asu
             tredsy(i,k,3) = -alo
@@ -75,7 +75,7 @@
 
          k=0
          asu=0.
-         alo=sedict*seddzi(1)*porwah(1)
+         alo=sedict*seddzi(1)*porwah(1) * dtsed/dtbgc
          DO 1421 i=1,kpie
           IF(omask(i,j).GT.0.5) THEN
               tredsy(i,k,1) = -asu

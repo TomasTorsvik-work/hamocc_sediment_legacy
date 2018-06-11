@@ -71,8 +71,8 @@
 
       zcoefsu( 0)=0.0
       DO  k=1,ks   
-         zcoefsu(k  )=-sedict*seddzi(k)*porwah(k)    ! sediment diffusion coefficient * 1/dz * fraction of pore water at half depths
-         zcoeflo(k-1)=-sedict*seddzi(k)*porwah(k)    ! why the same ?
+         zcoefsu(k  )=-sedict*seddzi(k)*porwah(k) * dtsed/dtbgc    ! sediment diffusion coefficient * 1/dz * fraction of pore water at half depths
+         zcoeflo(k-1)=-sedict*seddzi(k)*porwah(k) * dtsed/dtbgc    ! why the same ?
       ENDDO
       zcoeflo(ks)=0.0                                ! diffusion coefficient for bottom sediment layer
 

@@ -199,21 +199,18 @@ c# endif
 c --- The whole sediment() routine is done as soon as the needed bottom
 c --- water variables are available, at two subsequent MICOM timesteps,
 c --- following the leapfrog scheme
-c#  if defined(SED_RCLIM)
+
+c --- start immediately with sediment() if bottom water climatology is read,
+c --- else wait until the end of the year when we have bottom-water fields
       if (must_read_clim) then
-      lrunsed = .true.
-c#  else
+         lrunsed = .true.
+      elseif (maxyear_ocean<=0) then
+         lrunsed = .false.
       else
-      if (maxyear_ocean<=0) then
-         call xchalt('hamocc_step(): Invalid value for maxyear_ocean')
-                stop 'hamocc_step(): Invalid value for maxyear_ocean'
+         lrunsed = mod(nyear,maxyear_ocean)==0 .and. nday_of_year==nday_in_year
+     .             .and. is_end_of_day
       endif
-      lrunsed = mod(nyear,maxyear_ocean)==0 .and. nday_of_year==nday_in_year
-c    .          .and. ( mod(nstep+1,nstep_in_day)==nstep_in_day-1
-c    .          .or. is_end_of_day ) ! leapfrog
-     .          .and. is_end_of_day  ! euler
-      endif
-c#  endif
+
       if ( lrunsed ) then
          IF (mnproc.eq.1) WRITE(io_stdo_bgc,*)
      .            'hamocc_step(): sediment spin-up starting'
