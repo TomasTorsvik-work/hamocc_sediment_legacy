@@ -72,6 +72,10 @@ IF (mnproc.eq.1) THEN
    WRITE(io_stdo_bgc,*) 'Starting sediment spin-up'
 ENDIF
 
+!TODO: test effect of this!
+! set up sediment layers (mainly for much higher diffusion rate)
+call bodensed_onlysed(kpie,kpje,kpke,pddpo)
+
 do iyear = 1, maxyear_sediment
    nyear_global = nyear_global + 1
    IF (mnproc.eq.1) WRITE(io_stdo_bgc,*) 'sediment(): nyear_global = ', nyear_global
@@ -115,11 +119,13 @@ do iyear = 1, maxyear_sediment
       call accbur(jburssster,burial(1,1,issster))
 
 !     write monthly outputs (assuming first index is mo)
-      nacc_bgc(1) = 1
-      if (GLB_INVENTORY(1).ne.0)                                        &
-         &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-      call ncwrt_bgc(1) ! ncout_hamocc.F
-      nacc_bgc(1) = 0
+      if (maxyear_sediment <= 20)
+         nacc_bgc(1) = 1
+         if (GLB_INVENTORY(1).ne.0)                                        &
+            &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+         call ncwrt_bgc(1) ! ncout_hamocc.F
+         nacc_bgc(1) = 0
+      endif
    enddo
 
 !  write yearly outputs (assuming second index is yr)

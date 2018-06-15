@@ -115,7 +115,6 @@ c --- Read the bottom seawater climatology from the netCDF forcing file
       else
 c# else
 c --- Accumulate the bottom seawater fields from HAMOCC
-c     call calc_bot(idm,jdm,kdm,bgc_dp) ! not needed (kbo, bolay already current)
       nstep_in_month  = nstep_in_month + 1
       do iocetra = 1, nocetra
          do j = 1, jdm
