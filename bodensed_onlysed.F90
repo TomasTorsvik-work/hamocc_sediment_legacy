@@ -1,4 +1,4 @@
-      SUBROUTINE BODENSED(kpie,kpje,kpke,pddpo)
+      SUBROUTINE bodensed_onlysed(kpie,kpje,kpke,pddpo)
 
 !
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/bodensed.f90,v $\\
