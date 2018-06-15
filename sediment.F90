@@ -119,7 +119,7 @@ do iyear = 1, maxyear_sediment
       call accbur(jburssster,burial(1,1,issster))
 
 !     write monthly outputs (assuming first index is mo)
-      if (maxyear_sediment <= 20)
+      if (maxyear_sediment <= 20) then
          nacc_bgc(1) = 1
          if (GLB_INVENTORY(1).ne.0)                                        &
             &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
