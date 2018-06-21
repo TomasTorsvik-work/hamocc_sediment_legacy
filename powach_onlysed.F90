@@ -171,7 +171,8 @@
      &  (silsat-sediso(i,0)-ocetra_kbo_clim(i,j,isilica,imonth))*bolay_clim(i,j,imonth)
 
             sedlay(i,j,1,issssil)=                                    &
-     &        sedlay(i,j,1,issssil)+silpro_clim(i,j,imonth)/(porsol(1)*seddw(1))
+     &        sedlay(i,j,1,issssil)+silpro_clim(i,j,imonth)/(porsol(1)*seddw(1)) &
+     &        * dtsed/dtbgc
          ENDIF
 4     CONTINUE
 
@@ -244,7 +245,8 @@
       DO 14 i=1,kpie
          IF(omask(i,j).GT.0.5) THEN
             sedlay(i,j,1,issso12)                                     &
-     &      =sedlay(i,j,1,issso12)+prorca_clim(i,j,imonth)/(porsol(1)*seddw(1))
+     &      =sedlay(i,j,1,issso12)+prorca_clim(i,j,imonth)/(porsol(1)*seddw(1)) &
+     &      * dtsed/dtbgc
 #ifdef __c_isotopes
             sedlay(i,j,1,issso13)                                     &
      &      =sedlay(i,j,1,issso13)+pror13(i,j)/(porsol(1)*seddw(1))
@@ -446,7 +448,8 @@
       DO 24 i=1,kpie
          IF(omask(i,j).GT.0.5) THEN
             sedlay(i,j,1,isssc12)=                                     &
-     &      sedlay(i,j,1,isssc12)+prcaca_clim(i,j,imonth)/(porsol(1)*seddw(1))
+     &      sedlay(i,j,1,isssc12)+prcaca_clim(i,j,imonth)/(porsol(1)*seddw(1)) &
+     &      * dtsed/dtbgc
 #ifdef __c_isotopes
             sedlay(i,j,1,isssc13)=                                     &
      &      sedlay(i,j,1,isssc13)+prca13(i,j)/(porsol(1)*seddw(1))
@@ -507,7 +510,8 @@
        do j=1,kpje
        do i=1,kpie
        sedlay(i,j,1,issster) = sedlay(i,j,1,issster)                 &
-     &                       + produs_clim(i,j,imonth)/(porsol(1)*seddw(1))     
+     &                       + produs_clim(i,j,imonth)/(porsol(1)*seddw(1))   &
+     &                       * dtsed/dtbgc
        enddo
        enddo
 !$OMP END PARALLEL DO
