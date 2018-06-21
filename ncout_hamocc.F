@@ -45,10 +45,10 @@ c --- get file name
          if (.not.append2file(iogrp)) then
             if ( imonth == 0 ) then
                call diafnm(runid,runid_len,expcnf,"hsedy", ! mod_dia.F
-     .                     nstep_in_day+1,12.0,.false.,.true.,fname(iogrp))
+     .                     nstep,filefq_bgc(iogrp)/real(nstep_in_day),.false.,.true.,fname(iogrp))
             else
                call diafnm(runid, runid_len, expcnf, "hsedm",
-     .                     nstep_in_day+1,1.0,.true.,.false.,fname(iogrp))
+     .                     nstep,filefq_bgc(iogrp)/real(nstep_in_day),.true.,.false.,fname(iogrp))
             endif
             append2file(iogrp)=.true.
             irec(iogrp)=1
@@ -117,6 +117,9 @@ c --- write auxillary dimension information
       call ncwrt1('depth','depth',depthslev)
       call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
 c
+#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+      if ( .not. lrunsed ) then
+#endif
 c --- finalize accumulation 
       call finlyr(jphyto(iogrp),jdp(iogrp))
       call finlyr(jgrazer(iogrp),jdp(iogrp))
@@ -550,6 +553,9 @@ c --- Store 3d level fields
      .  rnacc,0.,cmpflg,'natomegaclvl',
      .  'Natural OmegaC',' ','-')
 #endif
+#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+      endif
+#endif
 c
 c --- Store sediment fields
       call wrtsdm(jpowaic(iogrp),SDM_POWAIC(iogrp),rnacc*1e3,0.,cmpflg,
@@ -779,6 +785,9 @@ c
       call ncattr('positive','down')
       call ncattr('bounds','depth_bnds')  
       call ncdefvar('depth_bnds','bounds depth',ndouble,8)
+#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+      if ( .not. lrunsed ) then
+#endif
       call ncdefvar3d(SRF_KWCO2(iogrp),cmpflg,'p',
      .  'kwco2',' ',' ',' ',0)
       call ncdefvar3d(SRF_PCO2(iogrp),cmpflg,'p',
@@ -1055,6 +1064,9 @@ c --- define 3d level fields
      .  'natcalclvl','Natural CaCO3 shells',' ','mol C m-3',2)
       call ncdefvar3d(LVL_NATOMEGAC(iogrp),cmpflg,'p',
      .  'natomegaclvl','Natural OmegaC',' ','1',2)
+#endif
+#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+      endif
 #endif
 c
 c --- define sediment fields
