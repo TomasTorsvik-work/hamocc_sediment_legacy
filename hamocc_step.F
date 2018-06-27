@@ -56,11 +56,6 @@ c --- Apparently, nstep=0 (mod 18) at the start of a day!
          IF (mnproc.eq.1) WRITE(io_stdo_bgc,*)
      .            'hamocc_step(): nyear_global = ', nyear_global
       endif
-      call hamocc4bcm(idm,jdm,kdm,pglat,bgc_swr,bgc_fice,
-     .            bgc_t,bgc_s,bgc_slp,bgc_rho,bgc_dp,bgc_dx,bgc_dy,
-     .            bgc_pu,bgc_pw,bgc_dpio,bgc_awnd,bgc_atmco2,bgc_flxco2,
-     .            nyear,nmonth,nday,nd_in_m(nmonth),ldtmonth,ldtday,
-     .            omask,nday_in_year,bgc_flxdms)
 c
 
 #if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
@@ -224,6 +219,11 @@ c --- else wait until the end of the year when we have bottom-water fields
       must_read_clim = .false.
 
 #endif
+      call hamocc4bcm(idm,jdm,kdm,pglat,bgc_swr,bgc_fice,
+     .            bgc_t,bgc_s,bgc_slp,bgc_rho,bgc_dp,bgc_dx,bgc_dy,
+     .            bgc_pu,bgc_pw,bgc_dpio,bgc_awnd,bgc_atmco2,bgc_flxco2,
+     .            nyear,nmonth,nday,nd_in_m(nmonth),ldtmonth,ldtday,
+     .            omask,nday_in_year,bgc_flxdms)
 
       call hamocc2micom(m,n,mm,nn)
 c
