@@ -295,26 +295,7 @@
 !--------------------------------------------------------------------
 !     Sediment module
 
-      CALL POWACH(kpie,kpje,kpke,pdlxp,pdlyp,psao,prho,omask)
-!
-#ifdef PBGC_CK_TIMESTEP 
-      IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*)' '
-      WRITE(io_stdo_bgc,*)'after POWACH: call INVENTORY'
-      ENDIF
-      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-#endif	 
-
-!     sediment is shifted once a day (on both time levels!)
-      IF(KLDTDAY .EQ. 1 .OR. KLDTDAY .EQ. 2) THEN
-         IF (mnproc.eq.1) THEN
-         WRITE(io_stdo_bgc,*)                                           &
-     &   'Sediment shifting ...'
-         ENDIF
-
-         CALL SEDSHI(kpie,kpje,omask)
-
-      ENDIF
+      call sediment_step(kpie,kpje,kpke,pglat, pddpo,pdlxp,pdlyp,psao,prho, omask)
 
 
 !---------------------------------------------------------------------
@@ -421,26 +402,6 @@
           call acclvl(jlvlprefalk,ocetra(1,1,1,iprefalk),k,ind1,ind2,wghts)
         ENDDO
       ENDIF
-
-!     Accumulate sediments
-      call accsdm(jpowaic,powtra(1,1,1,ipowaic))
-      call accsdm(jpowaal,powtra(1,1,1,ipowaal))
-      call accsdm(jpowaph,powtra(1,1,1,ipowaph))
-      call accsdm(jpowaox,powtra(1,1,1,ipowaox))
-      call accsdm(jpown2 ,powtra(1,1,1,ipown2) )
-      call accsdm(jpowno3,powtra(1,1,1,ipowno3))
-      call accsdm(jpowasi,powtra(1,1,1,ipowasi))
-      call accsdm(jssso12,sedlay(1,1,1,issso12))
-      call accsdm(jssssil,sedlay(1,1,1,issssil))
-      call accsdm(jsssc12,sedlay(1,1,1,isssc12))
-      call accsdm(jssster,sedlay(1,1,1,issster))
-
-!     Accumulate sediment burial
-      call accbur(jburssso12,burial(1,1,issso12))
-      call accbur(jburssssil,burial(1,1,issssil))
-      call accbur(jbursssc12,burial(1,1,isssc12))
-      call accbur(jburssster,burial(1,1,issster))
-
 
 #ifdef PBGC_CK_TIMESTEP 
       IF (mnproc.eq.1) THEN

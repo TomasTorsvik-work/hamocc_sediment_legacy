@@ -31,7 +31,7 @@ subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao,prho,omask)
 ! Winguth and Archer (1999) doi:10.1029/98GB02812.
 !
 ! 2001-04   Changes by S. Legutke
-! 2018-??   Refactored by Marco van Hulten (IN PROGRESS)...
+! 2018-06   Refactored by Marco van Hulten
 !
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------

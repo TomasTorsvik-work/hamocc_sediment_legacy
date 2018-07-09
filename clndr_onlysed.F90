@@ -4,7 +4,7 @@ subroutine updcln_onlysed()
 !-----------------------------------------------------------------------
 ! Update the calendar
 !
-! 2018-06   Code based on NorESM-MICOM's updcln.F, here adjusted for
+! 2018-06   Code based on updcln() from phy/clndr.F, here adjusted for
 !           monthly timestepping in the sediment() spin-up routine.
 !-----------------------------------------------------------------------
 
