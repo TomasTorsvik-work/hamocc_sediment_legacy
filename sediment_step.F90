@@ -31,7 +31,7 @@ subroutine sediment_step(kpie,kpje,kpke,pglat, pddpo,pdlxp,pdlyp,psao,prho, omas
 
 use mod_xc
 use mo_bgcmean
-use mo_control_bgc, only: io_stdo_bgc, nyear_global, maxyear_sediment, imonth, iyear
+use mo_control_bgc, only: io_stdo_bgc
 use mo_param1_bgc
 use mo_sedmnt
 
@@ -50,11 +50,6 @@ real, intent(in)     :: pdlyp  (kpie,kpje)
 real, intent(in)     :: psao   (kpie,kpje,kpke) !FIXME: is clim in onlysed
 real, intent(in)     :: prho   (kpie,kpje,kpke) !FIXME: is clim in onlysed
 real, intent(in)     :: omask  (kpie,kpje)
-
-! Local variables
-!
-integer :: nday_save, nmonth_save   ! calendar variables outside sediment()
-integer :: nyear_save, nday_of_year_save, nd_in_m_2, nday_in_year_save
 
 !-----------------------------------------------------------------------
 ! Sediment module

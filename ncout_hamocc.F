@@ -7,8 +7,8 @@ c
       use mod_xc
       use mod_dia, only : diafnm,sigmar1,iotype
       use mo_control_bgc, only : dtbgc
-#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
-     .                         , lrunsed, imonth, iyear
+#if defined(SED_OFFLINE)
+     .                         , do_spinup, imonth, iyear
 #endif
       use mo_biomod, only: k0100,k0500,k1000,k2000,k4000
       use mo_bgcmean
@@ -40,8 +40,8 @@ c --- set time information
       datenum=time-time0-0.5*diagfq_bgc(iogrp)/nstep_in_day
 c
 c --- get file name
-#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
-      if ( lrunsed ) then
+#if defined(SED_OFFLINE)
+      if ( do_spinup ) then
          if (.not.append2file(iogrp)) then
             if ( imonth == 0 ) then
                call diafnm(runid,runid_len,expcnf,"hsedy", ! mod_dia.F
@@ -66,7 +66,7 @@ c --- get file name
       else
         irec(iogrp)=irec(iogrp)+1
       endif
-#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+#if defined(SED_OFFLINE)
       endif
 #endif
       if (((fileann_bgc(iogrp).and.nday_of_year.eq.1.or.
@@ -117,8 +117,8 @@ c --- write auxillary dimension information
       call ncwrt1('depth','depth',depthslev)
       call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
 c
-#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
-      if ( .not. lrunsed ) then
+#if defined(SED_OFFLINE)
+      if ( .not. do_spinup ) then
 #endif
 c --- finalize accumulation 
       call finlyr(jphyto(iogrp),jdp(iogrp))
@@ -553,7 +553,7 @@ c --- Store 3d level fields
      .  rnacc,0.,cmpflg,'natomegaclvl',
      .  'Natural OmegaC',' ','-')
 #endif
-#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+#if defined(SED_OFFLINE)
       endif
 #endif
 c
@@ -785,8 +785,8 @@ c
       call ncattr('positive','down')
       call ncattr('bounds','depth_bnds')  
       call ncdefvar('depth_bnds','bounds depth',ndouble,8)
-#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
-      if ( .not. lrunsed ) then
+#if defined(SED_OFFLINE)
+      if ( .not. do_spinup ) then
 #endif
       call ncdefvar3d(SRF_KWCO2(iogrp),cmpflg,'p',
      .  'kwco2',' ',' ',' ',0)
@@ -1065,7 +1065,7 @@ c --- define 3d level fields
       call ncdefvar3d(LVL_NATOMEGAC(iogrp),cmpflg,'p',
      .  'natomegaclvl','Natural OmegaC',' ','1',2)
 #endif
-#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+#if defined(SED_OFFLINE)
       endif
 #endif
 c

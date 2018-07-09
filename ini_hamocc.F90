@@ -144,11 +144,6 @@
 #endif
       nyear_global = 0
       is_end_of_day = .false.
-#if defined(SED_RCLIM)
-      must_read_clim = .true.
-#else
-      must_read_clim = .false.
-#endif
 
       CALL ALLOC_MEM_BGCMEAN(kpie,kpje,kpke)
 

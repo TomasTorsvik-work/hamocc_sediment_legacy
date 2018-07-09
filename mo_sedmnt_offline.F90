@@ -1,3 +1,4 @@
+#if defined(SED_OFFLINE)
 module mo_sedmnt_offline
 
 !-----------------------------------------------------------------------
@@ -27,7 +28,7 @@ module mo_sedmnt_offline
 !     one-year MICOM/HAMOCC run over which monthly averages are
 !     accumulated.
 !
-! - subroutine sed_spinup()
+! - subroutine sed_offline()
 !     Spin-up the sediment by looping sediment_step() over time.
 !     In case no climatology was read, it will first collect monthly
 !     averages of bottom water layer particle fluxes and dissolved
@@ -57,7 +58,7 @@ use mo_control_bgc, only: nyear_global, is_end_of_day, io_stdo_bgc   &
    &                    , maxyear_ocean                              &
    &                    , rmasko, nstep_in_month                     &
    &                    , lsed_rclim, lsed_wclim, lsed_spinup        &
-   &                    , lrunsed, imonth
+   &                    , do_spinup, imonth
 use mo_carbch,      only: ocetra, keqb, co3
 use mo_param1_bgc,  only: nocetra, idet, icalc, iopal, ifdust
 use mo_biomod,      only: kbo, bolay, wpoc, wmin, wmax, wdust        &
@@ -94,7 +95,7 @@ real, dimension (:,:,:),   allocatable :: co3_kbo_clim
 
 private
 
-public:: sed_spinup
+public:: sed_offline
 
 !#include "common_bgc.h90"
 !#include "common_blocks.h"
@@ -108,7 +109,7 @@ contains
 
 subroutine sed_init()
    ! Default action is not to do the sediment spin-up
-   lrunsed = .false.
+   do_spinup = .false.
 end subroutine
 
 subroutine sed_rclim()
@@ -140,163 +141,159 @@ subroutine sed_rclim()
    bgc_s_kbo_avg = 0.0
    bgc_rho_kbo_avg = 0.0
    co3_kbo_avg = 0.0
-
 end subroutine sed_rclim
 
-subroutine sed_spinup(kpie,kpje,kpke,pglat,pddpo,maxyear_sediment)
-      INTEGER :: kpie,kpje,kpke
-      REAL    :: pglat  (kpie,kpje)
-      REAL    :: pddpo  (kpie,kpje,kpke)
-integer    :: maxyear_sediment
+subroutine sed_offline(kpie,kpje,kpke,pglat,pddpo,nyears)
+   integer  :: kpie,kpje,kpke
+   real     :: pglat  (kpie,kpje)
+   real     :: pddpo  (kpie,kpje,kpke)
+   integer  :: nyears
 
-if (lsed_rclim) then
-   CALL sed_rclim()
-else
-! Accumulate the bottom seawater fields from HAMOCC
-nstep_in_month  = nstep_in_month + 1
-do iocetra = 1, nocetra
-   do j = 1, jdm
-      do i = 1, idm
-         ocetra_kbo_avg(i,j,iocetra) = ocetra_kbo_avg(i,j, iocetra)  &
-            &                        + ocetra(i,j,kbo(i,j),iocetra)
+! Local variables
+!
+integer :: nday_save, nmonth_save   ! calendar variables outside sediment()
+integer :: nyear_save, nday_of_year_save, nd_in_m_2, nday_in_year_save
+
+   if (lsed_rclim) then
+      call sed_rclim()
+      lsed_rclim = .false.
+   else
+      ! Accumulate the bottom seawater fields from HAMOCC
+      nstep_in_month  = nstep_in_month + 1
+      do iocetra = 1, nocetra
+         do j = 1, jdm
+            do i = 1, idm
+               ocetra_kbo_avg(i,j,iocetra) = ocetra_kbo_avg(i,j, iocetra)  &
+                  &                        + ocetra(i,j,kbo(i,j),iocetra)
+            enddo
+         enddo
       enddo
-   enddo
-enddo
-do j = 1, jdm
-   do i = 1, idm
-      bgc_t_kbo_avg(i,j) = bgc_t_kbo_avg(i,j) + bgc_t(i,j,kbo(i,j))
-      bgc_s_kbo_avg(i,j) = bgc_s_kbo_avg(i,j) + bgc_s(i,j,kbo(i,j))
-      bgc_rho_kbo_avg(i,j) = bgc_rho_kbo_avg(i,j) + bgc_rho(i,j,kbo(i,j))
-      co3_kbo_avg(i,j) = co3_kbo_avg(i,j) + co3(i,j,kbo(i,j))
-      bolay_avg(i,j) = min(bolay_avg(i,j), bolay(i,j))
-   enddo
-enddo
-keqb_avg  = keqb_avg  + keqb
-!bolay_avg = bolay_avg + bolay
-
-! Calculate the day of month
-nday_of_month = nday_of_year
-do i = 1, nmonth-1
-   nday_of_month = nday_of_month - nd_in_m(i)
-enddo
-
-! Calculate tracer monthly average
-if ( nday_of_month==nd_in_m(nmonth) .and. is_end_of_day ) then
-   if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
-      &  'hamocc_step(): end of month, set tracer avg for last month'
-   ocetra_kbo_avg = ocetra_kbo_avg / nstep_in_month
-   !bolay_avg = bolay_avg / nstep_in_month
-   keqb_avg = keqb_avg / nstep_in_month
-   bgc_t_kbo_avg = bgc_t_kbo_avg / nstep_in_month
-   bgc_s_kbo_avg = bgc_s_kbo_avg / nstep_in_month
-   bgc_rho_kbo_avg = bgc_rho_kbo_avg / nstep_in_month
-   co3_kbo_avg = co3_kbo_avg / nstep_in_month
-   do j = 1, jdm     ! Here we assume the WLIN case.
-      do i = 1, idm
-         wpoc = min(wmin+wlin*bolay_avg(i,j),wmax)
-         prorca_avg(i,j)=ocetra_kbo_avg(i,j,idet  )*wpoc
-         prcaca_avg(i,j)=ocetra_kbo_avg(i,j,icalc )*wcal
-         silpro_avg(i,j)=ocetra_kbo_avg(i,j,iopal )*wopal
-         produs_avg(i,j)=ocetra_kbo_avg(i,j,ifdust)*wdust
+      do j = 1, jdm
+         do i = 1, idm
+            bgc_t_kbo_avg(i,j) = bgc_t_kbo_avg(i,j) + bgc_t(i,j,kbo(i,j))
+            bgc_s_kbo_avg(i,j) = bgc_s_kbo_avg(i,j) + bgc_s(i,j,kbo(i,j))
+            bgc_rho_kbo_avg(i,j) = bgc_rho_kbo_avg(i,j) + bgc_rho(i,j,kbo(i,j))
+            co3_kbo_avg(i,j) = co3_kbo_avg(i,j) + co3(i,j,kbo(i,j))
+            bolay_avg(i,j) = min(bolay_avg(i,j), bolay(i,j))
+         enddo
       enddo
-   enddo
-   nstep_in_month = 0
-!#  if defined(SED_WCLIM)
-   if (lsed_wclim) then
-      ! Write tracer monthly averages to netCDF file
-      call aufw_bgc_onlysed(idm,jdm,kdm,nyear,nmonth,nday,nstep,bscfnm)
-!#  endif
-      ocetra_kbo_clim(:,:,:,nmonth) = ocetra_kbo_avg
-      bolay_clim(:,:,nmonth) = bolay_avg
-      keqb_clim(:,:,:,nmonth) = keqb_avg
-      prorca_clim(:,:,nmonth) = prorca_avg
-      prcaca_clim(:,:,nmonth) = prcaca_avg
-      silpro_clim(:,:,nmonth) = silpro_avg
-      produs_clim(:,:,nmonth) = produs_avg
-      bgc_t_kbo_clim(:,:,nmonth) = bgc_t_kbo_avg
-      bgc_s_kbo_clim(:,:,nmonth) = bgc_s_kbo_avg
-      bgc_rho_kbo_clim(:,:,nmonth) = bgc_rho_kbo_avg
-      co3_kbo_clim(:,:,nmonth) = co3_kbo_avg
-      ocetra_kbo_avg = 0.0
-      bolay_avg = 4000.0
-      keqb_avg  = 0.0
-      prorca_avg = 0.0
-      prcaca_avg = 0.0
-      silpro_avg = 0.0
-      produs_avg = 0.0
-      bgc_t_kbo_avg = 0.0
-      bgc_s_kbo_avg = 0.0
-      bgc_rho_kbo_avg = 0.0
-      co3_kbo_avg = 0.0
-   endif ! end of month routines
-endif
-endif ! (lsed_rclim)
+      keqb_avg  = keqb_avg  + keqb
+      !bolay_avg = bolay_avg + bolay
 
-!!!!!!!!!
+      ! Calculate the day of month
+      nday_of_month = nday_of_year
+      do i = 1, nmonth-1
+         nday_of_month = nday_of_month - nd_in_m(i)
+      enddo
 
-!# if defined(SED_OFFLINE)
-if (lsed_spinup) then
-! The time loop over the sediment routines is done as soon as the needed bottom
-! water variables are available
-
-! start immediately with sediment() if bottom water climatology is read,
-! else wait until the end of the year when we have bottom-water fields
-if (lsed_rclim) then
-   lrunsed = .true.
-elseif (maxyear_ocean<=0) then
-   lrunsed = .false.
-else
-   lrunsed = mod(nyear,maxyear_ocean)==0 .and. nday_of_year==nday_in_year  &
-      &      .and. is_end_of_day
-endif
-
-if ( lrunsed ) then
-   ! set up sediment layers (mainly for much higher diffusion rate)
-   call bodensed_onlysed(kpie,kpje,kpke,pddpo)
-
-   ! save calendar variables
-   nday_save         = nday
-   nmonth_save       = nmonth
-   nyear_save        = nyear
-   nday_of_year_save = nday_of_year
-   nd_in_m_2         = nd_in_m(2)
-   nday_in_year_save = nday_in_year
-
-   do iyear = 1, maxyear_sediment
-      nyear_global = nyear_global + 1
-      if (mnproc.eq.1) write(io_stdo_bgc,*) 'sediment(): nyear_global = ', nyear_global
-      do imonth = 1, 12
+      ! Calculate tracer monthly average
+      if ( nday_of_month==nd_in_m(nmonth) .and. is_end_of_day ) then
          if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
-            &     'hamocc_step(): sediment spin-up starting'
-         call updcln_onlysed() ! do a monthly calendar update only for sediment_step()
-         call sediment_step(idm,jdm,kdm,pglat, bgc_dp,bgc_dx,bgc_dy, omask)
-      enddo
-   enddo
+            &  'hamocc_step(): end of month, set tracer avg for last month'
+         ocetra_kbo_avg = ocetra_kbo_avg / nstep_in_month
+         !bolay_avg = bolay_avg / nstep_in_month
+         keqb_avg = keqb_avg / nstep_in_month
+         bgc_t_kbo_avg = bgc_t_kbo_avg / nstep_in_month
+         bgc_s_kbo_avg = bgc_s_kbo_avg / nstep_in_month
+         bgc_rho_kbo_avg = bgc_rho_kbo_avg / nstep_in_month
+         co3_kbo_avg = co3_kbo_avg / nstep_in_month
+         do j = 1, jdm     ! Here we assume the WLIN case.
+            do i = 1, idm
+               wpoc = min(wmin+wlin*bolay_avg(i,j),wmax)
+               prorca_avg(i,j)=ocetra_kbo_avg(i,j,idet  )*wpoc
+               prcaca_avg(i,j)=ocetra_kbo_avg(i,j,icalc )*wcal
+               silpro_avg(i,j)=ocetra_kbo_avg(i,j,iopal )*wopal
+               produs_avg(i,j)=ocetra_kbo_avg(i,j,ifdust)*wdust
+            enddo
+         enddo
+         nstep_in_month = 0
+         if (lsed_wclim) then
+            ! Write tracer monthly averages to netCDF file
+            call aufw_bgc_onlysed(idm,jdm,kdm,nyear,nmonth,nday,nstep,bscfnm)
+            ocetra_kbo_clim(:,:,:,nmonth) = ocetra_kbo_avg
+            bolay_clim(:,:,nmonth) = bolay_avg
+            keqb_clim(:,:,:,nmonth) = keqb_avg
+            prorca_clim(:,:,nmonth) = prorca_avg
+            prcaca_clim(:,:,nmonth) = prcaca_avg
+            silpro_clim(:,:,nmonth) = silpro_avg
+            produs_clim(:,:,nmonth) = produs_avg
+            bgc_t_kbo_clim(:,:,nmonth) = bgc_t_kbo_avg
+            bgc_s_kbo_clim(:,:,nmonth) = bgc_s_kbo_avg
+            bgc_rho_kbo_clim(:,:,nmonth) = bgc_rho_kbo_avg
+            co3_kbo_clim(:,:,nmonth) = co3_kbo_avg
+            ocetra_kbo_avg = 0.0
+            bolay_avg = 4000.0
+            keqb_avg  = 0.0
+            prorca_avg = 0.0
+            prcaca_avg = 0.0
+            silpro_avg = 0.0
+            produs_avg = 0.0
+            bgc_t_kbo_avg = 0.0
+            bgc_s_kbo_avg = 0.0
+            bgc_rho_kbo_avg = 0.0
+            co3_kbo_avg = 0.0
+         endif ! end of month routines
+      endif
+   endif ! (if .not. lsed_rclim)
 
-   ! update both time levels before returning to full model (leapfrog scheme)
-   sedlay2(:,:,1:ks,:)      = sedlay(:,:,:,:)
-   sedlay2(:,:,ks+1:2*ks,:) = sedlay(:,:,:,:)
-   powtra2(:,:,1:ks,:)      = powtra(:,:,:,:)
-   powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:)
-   burial2(:,:,1,:)         = burial(:,:,:)
-   burial2(:,:,2,:)         = burial(:,:,:)
+   if (lsed_spinup) then
+   ! The time loop over the sediment routines is done as soon as the needed bottom
+   ! water variables are available
 
-   ! set calendar variables back to outer sed_offline() values
-   nday         = nday_save
-   nmonth       = nmonth_save
-   nyear        = nyear_save
-   nday_of_year = nday_of_year_save
-   nd_in_m(2)   = nd_in_m_2
-   nday_in_year = nday_in_year_save
-
-   if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
-      &     'hamocc_step(): sediment spin-up ended'
+   ! start immediately with sediment() if bottom water climatology is read,
+   ! else wait until the end of the year when we have bottom-water fields
+   if (lsed_rclim) then
+      do_spinup = .true.
+   elseif (maxyear_ocean<=0) then
+      do_spinup = .false.
+   else
+      do_spinup = mod(nyear,maxyear_ocean)==0 .and. nday_of_year==nday_in_year  &
+         &      .and. is_end_of_day
    endif
-   lrunsed = .false.
-!# endif
-   lsed_rclim = .false.
 
-endif ! (lsed_spinup) 
+   if ( do_spinup ) then
+      ! set up sediment layers (mainly for much higher diffusion rate)
+      call bodensed_onlysed(kpie,kpje,kpke,pddpo)
+
+      ! save calendar variables
+      nday_save         = nday
+      nmonth_save       = nmonth
+      nyear_save        = nyear
+      nday_of_year_save = nday_of_year
+      nd_in_m_2         = nd_in_m(2)
+      nday_in_year_save = nday_in_year
+
+      do iyear = 1, nyears
+         nyear_global = nyear_global + 1
+         if (mnproc.eq.1) write(io_stdo_bgc,*) 'sediment(): nyear_global = ', nyear_global
+         do imonth = 1, 12
+            if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
+               &     'hamocc_step(): sediment spin-up starting'
+            call updcln_onlysed() ! do a monthly calendar update only for sediment_step()
+            call sediment_step(idm,jdm,kdm,pglat, bgc_dp,bgc_dx,bgc_dy, omask)
+         enddo
+      enddo
+
+      ! update both time levels before returning to full model (leapfrog scheme)
+      sedlay2(:,:,1:ks,:)      = sedlay(:,:,:,:)
+      sedlay2(:,:,ks+1:2*ks,:) = sedlay(:,:,:,:)
+      powtra2(:,:,1:ks,:)      = powtra(:,:,:,:)
+      powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:)
+      burial2(:,:,1,:)         = burial(:,:,:)
+      burial2(:,:,2,:)         = burial(:,:,:)
+
+      ! set calendar variables back to outer sed_offline() values
+      nday         = nday_save
+      nmonth       = nmonth_save
+      nyear        = nyear_save
+      nday_of_year = nday_of_year_save
+      nd_in_m(2)   = nd_in_m_2
+      nday_in_year = nday_in_year_save
+
+      if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
+         &     'hamocc_step(): sediment spin-up ended'
+      endif
+   endif ! (lsed_spinup) 
 end subroutine sed_offline
 
 subroutine alloc_mem_sedmnt_offline(kpie, kpje)
@@ -421,3 +418,4 @@ subroutine alloc_mem_sedmnt_offline(kpie, kpje)
 end subroutine alloc_mem_sedmnt_offline
 
 end module mo_sedmnt_offline
+#endif

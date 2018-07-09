@@ -84,7 +84,8 @@
       integer :: p_joff,p_ioff
 
 #ifdef SED_OFFLINE
-      namelist /bgcnml/ atm_co2, maxyear_sediment, maxyear_ocean
+      namelist /bgcnml/ atm_co2, maxyear_sediment, maxyear_ocean,    &
+         &              lsed_rclim, lsed_wclim, lsed_spinup
 #else
       namelist /bgcnml/ atm_co2
 #endif
@@ -108,6 +109,9 @@
 #ifdef SED_OFFLINE
         write(io_stdo_bgc,*) 'HAMOCC: maxyear_sediment =',maxyear_sediment
         write(io_stdo_bgc,*) 'HAMOCC: maxyear_ocean =',maxyear_ocean
+        write(io_stdo_bgc,*) 'HAMOCC: lsed_rclim =',lsed_rclim
+        write(io_stdo_bgc,*) 'HAMOCC: lsed_wclim =',lsed_wclim
+        write(io_stdo_bgc,*) 'HAMOCC: lsed_spinup =',lsed_spinup
 #endif
       ENDIF
       atm_o2  = 196800.

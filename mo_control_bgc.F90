@@ -45,17 +45,17 @@
       INTEGER :: ldtbgc           !  time step number from bgc restart file
       INTEGER :: ldtrunbgc        !  actual time steps of run.
 #if defined(SED_OFFLINE)
-      LOGICAL :: lrunsed = .false.!  whether to run the sediment spin-up code.
+      LOGICAL :: do_spinup = .false.!  whether to run the sediment spin-up code.
       INTEGER :: nstep_in_month   !  accumulation counter for SED_WCLIM.
       INTEGER :: imonth, iyear    !  counters that must be available to ncwrt_bgc().
       INTEGER :: maxyear_sediment !  number of years for off-line sediment integration.
       INTEGER :: maxyear_ocean    !  number of years for full MICOM-HAMOCC integration.
-#endif
-      INTEGER :: nyear_global     !  ocean model year number, including sediment().
-      LOGICAL :: is_end_of_day    !  whether we are at the last timestep of the day.
       LOGICAL :: lsed_rclim       !  whether to read bottom seawater climatology from file.
       LOGICAL :: lsed_wclim       !  whether to write bottom seawater climatology to file.
       LOGICAL :: lsed_spinup      !  whether to spin up the sediment.
+#endif
+      INTEGER :: nyear_global     !  ocean model year number, including sediment().
+      LOGICAL :: is_end_of_day    !  whether we are at the last timestep of the day.
 
 
       INTEGER :: icyclibgc        !  switch for cyclicity.
