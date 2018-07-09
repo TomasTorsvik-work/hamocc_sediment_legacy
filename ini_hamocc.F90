@@ -139,7 +139,7 @@
 ! Initialize time step counter of run.
 !
       ldtrunbgc = 0
-#if defined(SED_OFFLINE) || defined(SED_RCLIM) || defined(SED_WCLIM)
+#if defined(SED_OFFLINE)
       nstep_in_month = 0
 #endif
       nyear_global = 0

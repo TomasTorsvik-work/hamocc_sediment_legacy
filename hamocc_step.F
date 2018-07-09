@@ -8,8 +8,8 @@ c
       use mod_xc
       use mo_bgcmean
       use mo_control_bgc, only: nyear_global, is_end_of_day, io_stdo_bgc
-#ifdef SEDI_OFFLINE
-      use mo_sedi_offline, only: sed_offline
+#ifdef SED_OFFLINE
+      use mo_sedmnt_offline, only: sed_offline
 #endif
 c
       implicit none
@@ -42,7 +42,7 @@ c --- Apparently, nstep=0 (mod 18) at the start of a day!
      .            'hamocc_step(): nyear_global = ', nyear_global
       endif
 c
-#ifdef SEDI_OFFLINE
+#ifdef SED_OFFLINE
       call sed_offline(idm,jdm,kdm,bgc_dp,50)
 #endif
 c
