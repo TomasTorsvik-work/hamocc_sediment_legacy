@@ -44,7 +44,8 @@ c --- Apparently, nstep=0 (mod 18) at the start of a day!
       endif
 c
 #ifdef SED_OFFLINE
-      call sed_offline(idm,jdm,kdm,bgc_dp,maxyear_sediment)
+      call sed_offline(idm, jdm, kdm, maxyear_sediment,
+     .                 pglat, bgc_dp, bgc_dx, bgc_dy, omask)
 #endif
 c
       call hamocc4bcm(idm,jdm,kdm,pglat,bgc_swr,bgc_fice,

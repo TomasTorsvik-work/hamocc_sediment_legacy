@@ -31,7 +31,7 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
 !-----------------------------------------------------------------------
 
    use netcdf
-   use mo_sedmnt
+   use mo_sedmnt_offline
    use mo_control_bgc, only: io_stdo_bgc, ldtbgc, rmasko
    use mo_param1_bgc 
    use mod_xc,         only: itdm,jtdm,mnproc,xchalt
@@ -45,7 +45,7 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
    integer,          intent(in)  :: kplyear,kplmon,kplday,kpldtoce
    character(len=*), intent(in)  :: rstfnm
 
-#if defined(SED_RCLIM)
+#if defined(SED_OFFLINE)
 ! Local variables
 !
    integer           :: ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)      &

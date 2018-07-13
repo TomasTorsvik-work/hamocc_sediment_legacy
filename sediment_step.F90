@@ -1,10 +1,13 @@
-subroutine sediment_step(kpie,kpje,kpke,pglat, pddpo,pdlxp,pdlyp,psao,prho, omask)
+subroutine sediment_step(kpie, kpje, kpke, pglat, pddpo, pdlxp, pdlyp,  &
+   &                     psao_, prho_,                                  &
+   &                     ocetra_, bolay_, keqb_,                        &
+   &                     prorca_, prcaca_, silpro_, produs_, co3_)
 
 !-----------------------------------------------------------------------
 !
 ! Perform one sediment timestep
 !
-! Copyright (C) 2018 Marco van Hulten <Marco.Hulten@uib.no>
+! Copyright (C) 2018  University of Bergen
 !
 ! This subroutine is free software: you can redistribute it and/or modify
 ! it under the terms of the GNU General Public License as published by
@@ -25,15 +28,17 @@ subroutine sediment_step(kpie,kpje,kpke,pglat, pddpo,pdlxp,pdlyp,psao,prho, omas
 ! The sediment model is originally based on Heinze, Maier-Reimer,
 ! Winguth and Archer (1999) doi:10.1029/98GB02812.
 !
-! 2017-07   Code based on hamocc4bcm.F90.
+! Marco van Hulten <Marco.Hulten@uib.no>           2017-07-12
+! - Initial code based on hamocc4bcm.F90.
 !
 !-----------------------------------------------------------------------
 
 use mod_xc
 use mo_bgcmean
-use mo_control_bgc, only: io_stdo_bgc
+use mo_control_bgc!, only: io_stdo_bgc
 use mo_param1_bgc
 use mo_sedmnt
+use mo_common_bgc, only: omask
 
 implicit none
 
@@ -47,15 +52,31 @@ real, intent(in)     :: pglat  (kpie,kpje)
 real, intent(in)     :: pddpo  (kpie,kpje,kpke)
 real, intent(in)     :: pdlxp  (kpie,kpje)
 real, intent(in)     :: pdlyp  (kpie,kpje)
-real, intent(in)     :: psao   (kpie,kpje,kpke) !FIXME: is clim in onlysed
-real, intent(in)     :: prho   (kpie,kpje,kpke) !FIXME: is clim in onlysed
-real, intent(in)     :: omask  (kpie,kpje)
+real, intent(in)     :: psao_  (kpie,kpje)
+real, intent(in)     :: prho_  (kpie,kpje)
+!real, intent(in)     :: omask  (kpie,kpje)
+real, intent(inout)  :: ocetra_(kpie,kpje,nocetra)
+real, intent(in)     :: bolay_ (kpie,kpje)
+real, intent(in)     :: keqb_  (11,kpie,kpje)
+real, intent(inout)  :: prorca_(kpie,kpje)
+real, intent(inout)  :: prcaca_(kpie,kpje)
+real, intent(inout)  :: silpro_(kpie,kpje)
+real, intent(inout)  :: produs_(kpie,kpje)
+real, intent(in)     :: co3_   (kpie,kpje)
 
 !-----------------------------------------------------------------------
 ! Sediment module
 
-!call powach(kpie,kpje,kpke,pdlxp,pdlyp,omask)
-call powach(kpie,kpje,kpke,pdlxp,pdlyp,psao,prho,omask)
+if (ldo_spinup) then
+   dtsed = dtoff
+   rdtsed = dtoff/dtbgc
+else
+   dtsed = dtbgc
+   rdtsed = 1.
+endif
+
+call powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,              &
+        &   bolay_,ocetra_,keqb_,prorca_,prcaca_,silpro_,produs_,co3_)
 
 #ifdef PBGC_CK_TIMESTEP
 IF (mnproc.eq.1) THEN
@@ -69,7 +90,7 @@ CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 ! This should be added (TODO, e.g., here) when isotopes are included. - MvH
 
 ! sediment is shifted every sediment() timestep
-CALL SEDSHI(kpie,kpje,omask)
+call sedshi(kpie,kpje,omask)
 
 ! accumulate sediments
 call accsdm(jpowaic,powtra(1,1,1,ipowaic))
@@ -90,27 +111,7 @@ call accbur(jburssssil,burial(1,1,issssil))
 call accbur(jbursssc12,burial(1,1,isssc12))
 call accbur(jburssster,burial(1,1,issster))
 
-!FIXME: ONLY WHEN RUNNING SEDIMENT OFFLINE:
-!!     write monthly outputs (assuming first index is mo)
-!      if (maxyear_sediment <= 20) then
-!         nacc_bgc(1) = 1
-!         if (GLB_INVENTORY(1).ne.0)                                        &
-!            &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-!         call ncwrt_bgc(1) ! ncout_hamocc.F
-!         nacc_bgc(1) = 0
-!      endif
-!   enddo
-
-!FIXME: ONLY IF RUNNING SEDIMENT OFFLINE:
-!!  write yearly outputs (assuming second index is yr)
-!   nacc_bgc(2) = 1
-!   if (GLB_INVENTORY(2).ne.0)                                        &
-!      &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-!   imonth = 0 ! triggers writing of yearly averages
-!   call ncwrt_bgc(2) ! ncout_hamocc.F
-!   nacc_bgc(2) = 0
-!enddo
-
 !-----------------------------------------------------------------------
 return
-end
+end subroutine sediment_step
+

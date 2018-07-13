@@ -1,4 +1,5 @@
-subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao,prho,omask)
+subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,        &
+   &       bolay_,ocetra_,keqb_,prorca_,prcaca_,silpro_,produs_,co3_)
 
 !-----------------------------------------------------------------------
 !
@@ -51,9 +52,12 @@ subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao,prho,omask)
 !
 !-----------------------------------------------------------------------
 
-use mo_carbch
+use mo_carbch, only: sedfluxo, ocetra ! TODO: should sedfluxo be in bottom water climatology?
 use mo_chemcon, only: calcon
 use mo_sedmnt
+#if defined(DSED_OFFLINE)
+use mo_sedmnt_offline
+#endif
 use mo_biomod
 use mo_control_bgc
 use mo_param1_bgc
@@ -61,16 +65,25 @@ use mo_param1_bgc
 implicit none
 
 integer :: i, j, k, l
-integer :: kpie, kpje, kpke
+integer, intent(in)  :: kpie, kpje, kpke
 
-real :: psao(kpie,kpje,kpke)
-real :: prho(kpie,kpje,kpke)
+real, intent(in)     :: psao_(kpie,kpje)
+real, intent(in)     :: prho_(kpie,kpje)
+
+real, intent(in)     :: pdlxp(kpie,kpje), pdlyp(kpie,kpje)
+real, intent(in)     :: omask(kpie,kpje)
+real, intent(in)     :: bolay_ (kpie,kpje)
+real, intent(inout)  :: ocetra_(kpie,kpje,nocetra)
+real, intent(in)     :: keqb_  (11,kpie,kpje)
+real, intent(inout)  :: prorca_(kpie,kpje)
+real, intent(inout)  :: prcaca_(kpie,kpje)
+real, intent(inout)  :: silpro_(kpie,kpje)
+real, intent(inout)  :: produs_(kpie,kpje)
+real, intent(in)     :: co3_   (kpie,kpje)
 
 real :: sedb1(kpie,0:ks), sediso(kpie,0:ks)
 real :: solrat(kpie,ks), powcar(kpie,ks)
 real :: aerob(kpie,ks), anaerob(kpie,ks)
-real :: pdlxp(kpie,kpje), pdlyp(kpie,kpje)
-real :: omask(kpie,kpje)
 
 real :: disso, dissot, undsa, silsat, posol
 real :: umfa, denit, saln, rrho, alk, c, sit, pt
@@ -78,7 +91,7 @@ real :: K1, K2, Kb, Kw, Ks1, Kf, Ksi, K1p, K2p, K3p
 real :: ah1, ac, cu, cb, cc, satlev
 real :: ratc13, ratc14, rato13, rato14, poso13, poso14
 
-integer, parameter :: niter=5 ! number of iterations for carchm_solve
+integer, parameter :: niter = 5 ! number of iterations for carchm_solve
 
 !-----------------------------------------------------------------------
 ! accelerated sediment
@@ -129,7 +142,7 @@ enddo
 
 !disso=1.e-8
 disso=1.e-6 ! test vom 03.03.04 half live sil ca. 20.000 yr
-dissot=disso*dtbgc
+dissot=disso*dtsed
 
 ! Silicate saturation concentration is 1 mol/m3
 
@@ -142,10 +155,10 @@ silsat=0.001
 do i=1,kpie
    if(omask(i,j) > 0.5) then
       undsa=silsat-powtra(i,j,1,ipowasi)
-      sedb1(i,0)=bolay(i,j)*(silsat-ocetra(i,j,kbo(i,j),isilica)) &
+      sedb1(i,0)=bolay_(i,j)*(silsat-ocetra_(i,j,isilica)) &
      &          *bolven(i)
       solrat(i,1)=                                                &
-     &      (sedlay(i,j,1,issssil)+silpro(i,j)/(porsol(1)*seddw(1)))    &
+     &      (sedlay(i,j,1,issssil)+silpro_(i,j)/(porsol(1)*seddw(1)))    &
      &      *dissot/(1.+dissot*undsa)*porsol(1)/porwat(1)
    endif
 enddo
@@ -169,19 +182,22 @@ enddo
 ! Solve for new undersaturation sediso, from current undersaturation sedb1,
 ! and first guess of new solid sediment solrat.
 
-call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
+call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
 
-! Update water column silicate, and store the flux for budget.
+! Store the flux for budget.
 ! Add sedimentation to first layer.
 
+! NOTE: ocetra(:,:,kbo,:) could be replaced by ocetra_, but then the former
+!       would need to be updated by the latter later on (MvH)!
 do i=1,kpie
    if(omask(i,j) > 0.5) then
          sedfluxo(i,j,ipowasi) = sedfluxo(i,j,ipowasi) +             &
-     &  (silsat-sediso(i,0)-ocetra(i,j,kbo(i,j),isilica))*bolay(i,j)
+      &    (silsat-sediso(i,0) - ocetra(i,j,kbo(i,j),isilica))*bolay_(i,j)
 
-         ocetra(i,j,kbo(i,j),isilica) = silsat - sediso(i,0)
+         if (.not. ldo_spinup) ocetra(i,j,kbo(i,j),isilica) = silsat - sediso(i,0)
          sedlay(i,j,1,issssil) =                                     &
-     &        sedlay(i,j,1,issssil) + silpro(i,j) / (porsol(1)*seddw(1))
+      &  sedlay(i,j,1,issssil) + silpro_(i,j) / (porsol(1)*seddw(1)) &
+      &                                        * rdtsed
    endif
 enddo
 
@@ -198,17 +214,17 @@ do k=1,ks
          posol = sediso(i,k)*solrat(i,k)
          sedlay(i,j,k,issssil) = sedlay(i,j,k,issssil) - posol
          powtra(i,j,k,ipowasi) = silsat - sediso(i,k)
-      ENDIF
+      endif
    enddo
 enddo
 
 ! Calculate oxygen-POC cycle and simultaneous oxygen diffusion
-!*************************************************************
+!-----------------------------------------------------------------------
 
 ! Degradation rate constant of POP (disso) [1/(kmol O2/m3)*1/sec]
 
 disso=0.01/86400.  !  disso=3.e-5 was quite high
-dissot=disso*dtbgc
+dissot=disso*dtsed
 
 ! This scheme is not based on undersaturation, but on O2 itself
 
@@ -219,9 +235,9 @@ dissot=disso*dtbgc
 do i=1,kpie
    if(omask(i,j) > 0.5) then
       undsa = powtra(i,j,1,ipowaox)
-      sedb1(i,0) = bolay(i,j)*ocetra(i,j,kbo(i,j),ioxygen)         &
+      sedb1(i,0) = bolay_(i,j)*ocetra_(i,j,ioxygen)         &
          &       * bolven(i)
-      solrat(i,1) = (sedlay(i,j,1,issso12)+prorca(i,j)/(porsol(1)*seddw(1)))  &
+      solrat(i,1) = (sedlay(i,j,1,issso12)+prorca_(i,j)/(porsol(1)*seddw(1)))  &
          &        * ro2ut * dissot / (1.+dissot*undsa) * porsol(1)/porwat(1)
    endif
 enddo
@@ -232,11 +248,11 @@ enddo
 
 do k=1,ks
    do i=1,kpie
-      if(bolay(i,j) > 0.) then
+      if(bolay_(i,j) > 0.) then
          undsa = powtra(i,j,k,ipowaox)
          sedb1(i,k) = seddw(k)*porwat(k)*powtra(i,j,k,ipowaox)
-         IF(k > 1) solrat(i,k) = sedlay(i,j,k,issso12)               &
-            &      * ro2ut*dissot/(1.+dissot*undsa)*porsol(k)/porwat(k)
+         if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12)               &
+            &       * ro2ut*dissot/(1.+dissot*undsa)*porsol(k)/porwat(k)
       endif
    enddo
 enddo
@@ -244,23 +260,23 @@ enddo
 ! Solve for new O2 concentration sediso, from current concentration sedb1,
 ! and first guess of new solid sediment solrat.
 
-call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
+call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
 
 ! Update water column oxygen, and store the flux for budget (opwflux).
 ! Add sedimentation to first layer.
 
 do i=1,kpie
    if(omask(i,j) > 0.5) then
-      ocetra(i,j,kbo(i,j),ioxygen) = sediso(i,0)
+      if (.not. ldo_spinup) ocetra(i,j,kbo(i,j),ioxygen) = sediso(i,0)
       sedlay(i,j,1,issso12)                                     &
-     &      = sedlay(i,j,1,issso12)+prorca(i,j)/(porsol(1)*seddw(1))
+         &      = sedlay(i,j,1,issso12)+prorca_(i,j)/(porsol(1)*seddw(1))
 #ifdef __c_isotopes
       sedlay(i,j,1,issso13)                                     &
-     &      = sedlay(i,j,1,issso13)+pror13(i,j)/(porsol(1)*seddw(1))
+         &      = sedlay(i,j,1,issso13)+pror13(i,j)/(porsol(1)*seddw(1))
       sedlay(i,j,1,issso14)                                     &
-     &      = sedlay(i,j,1,issso14)+pror14(i,j)/(porsol(1)*seddw(1))
+         &      = sedlay(i,j,1,issso14)+pror14(i,j)/(porsol(1)*seddw(1))
 #endif
-         prorca(i,j) = 0.
+      if (.not. ldo_spinup)   prorca_(i,j) = 0.
 #ifdef __c_isotopes
          pror13(i,j) = 0.
          pror14(i,j) = 0.
@@ -306,13 +322,13 @@ enddo
 ! Denitrification rate constant of POP (disso) [1/sec]
 ! Store flux in array anaerob, for later computation of DIC and alkalinity.
 
-denit = 0.01/86400. *dtbgc
+denit = 0.01/86400. *dtsed
 do k=1,ks
    do i=1,kpie
       if(omask(i,j) > 0.5) then
          if(powtra(i,j,k,ipowaox) < 1.e-6) then
             posol = denit*MIN(0.5*powtra(i,j,k,ipowno3)/114.,          &
-     &                          sedlay(i,j,k,issso12))
+               &                  sedlay(i,j,k,issso12))
             umfa = porsol(k)/porwat(k)
             anaerob(i,k) = posol*umfa !this has P units: kmol P/m3 of pore water
             sedlay(i,j,k,issso12) = sedlay(i,j,k,issso12)-posol
@@ -337,8 +353,8 @@ enddo
 !    sulphate reduction in sediments
 do k=1,ks
    do i=1,kpie
-      if(omask(i,j) > 0.5) then
-      if(powtra(i,j,k,ipowaox) < 3.e-6 .and. powtra(i,j,k,ipowno3) < 3.e-6) then
+      if (omask(i,j) > 0.5) then
+      if (powtra(i,j,k,ipowaox) < 3.e-6 .and. powtra(i,j,k,ipowno3) < 3.e-6) then
          posol = denit* sedlay(i,j,k,issso12)        ! remineralization of POC
          umfa = porsol(k)/porwat(k)
          anaerob(i,k) = anaerob(i,k)+posol*umfa !this has P units: kmol P/m3 of pore water
@@ -375,23 +391,23 @@ enddo
 do k=1,ks
    do i=1,kpie
       if(omask(i,j) > 0.5) then
-         saln= psao(i,j,kbo(i,j))
-         rrho= prho(i,j,kbo(i,j))
+         saln= psao_(i,j)
+         rrho= prho_(i,j)
          alk = (powtra(i,j,k,ipowaal)-(anaerob(i,k)+aerob(i,k))*16.)  / rrho
          c   = (powtra(i,j,k,ipowaic)+(anaerob(i,k)+aerob(i,k))*122.) / rrho
          sit =  powtra(i,j,k,ipowasi) / rrho
          pt  =  powtra(i,j,k,ipowaph) / rrho
          ah1 = sedhpl(i,j,k)
-         K1  = keqb( 1,i,j)
-         K2  = keqb( 2,i,j)
-         Kb  = keqb( 3,i,j)
-         Kw  = keqb( 4,i,j)
-         Ks1 = keqb( 5,i,j)
-         Kf  = keqb( 6,i,j)
-         Ksi = keqb( 7,i,j)
-         K1p = keqb( 8,i,j)
-         K2p = keqb( 9,i,j)
-         K3p = keqb(10,i,j)
+         K1  = keqb_( 1,i,j)
+         K2  = keqb_( 2,i,j)
+         Kb  = keqb_( 3,i,j)
+         Kw  = keqb_( 4,i,j)
+         Ks1 = keqb_( 5,i,j)
+         Kf  = keqb_( 6,i,j)
+         Ksi = keqb_( 7,i,j)
+         K1p = keqb_( 8,i,j)
+         K2p = keqb_( 9,i,j)
+         K3p = keqb_(10,i,j)
 
          call carchm_solve(saln,c,alk,sit,pt,                  &
                            K1,K2,Kb,Kw,Ks1,Kf,Ksi,K1p,K2p,K3p, &
@@ -408,8 +424,8 @@ enddo
 
 
 ! Dissolution rate constant of CaCO3 (disso) [1/(kmol CO3--/m3)*1/sec]
-      disso = 1.e-7
-      dissot = disso*dtbgc
+disso = 1.e-7
+dissot = disso*dtsed
 
 ! Evaluate boundary conditions for sediment-water column exchange.
 ! Current undersaturation of bottom water: sedb(i,0) and
@@ -420,10 +436,10 @@ enddo
 
 do i=1,kpie
    if(omask(i,j) > 0.5) then
-      satlev = keqb(11,i,j)/calcon+2.e-5
+      satlev = keqb_(11,i,j)/calcon+2.e-5
       undsa = MAX(satlev-powcar(i,1),0.)
-      sedb1(i,0) = bolay(i,j) * (satlev-co3(i,j,kbo(i,j))) * bolven(i)
-      solrat(i,1) = (sedlay(i,j,1,isssc12)+prcaca(i,j) / (porsol(1)*seddw(1)))  &
+      sedb1(i,0) = bolay_(i,j) * (satlev-co3_(i,j)) * bolven(i)
+      solrat(i,1) = (sedlay(i,j,1,isssc12)+prcaca_(i,j) / (porsol(1)*seddw(1)))  &
          &        * dissot / (1.+dissot*undsa) * porsol(1)/porwat(1)
    endif
 enddo
@@ -435,7 +451,7 @@ enddo
 do k=1,ks
    do i=1,kpie
       if(omask(i,j) > 0.5) then
-         undsa=MAX(keqb(11,i,j)/calcon-powcar(i,k),0.)
+         undsa=MAX(keqb_(11,i,j)/calcon-powcar(i,k),0.)
          sedb1(i,k) = seddw(k)*porwat(k)*undsa
          if(k > 1)solrat(i,k) = sedlay(i,j,k,isssc12)                 &
             &                 * dissot/(1.+dissot*undsa)*porsol(k)/porwat(k)
@@ -447,18 +463,19 @@ enddo
 ! Solve for new undersaturation sediso, from current undersaturation sedb1,
 ! and first guess of new solid sediment solrat.
 
-call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
+call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
 
 ! There is no exchange between water and sediment with respect to co3 so far.
 ! Add sedimentation to first layer.
 do i=1,kpie
    if(omask(i,j) > 0.5) then
-      sedlay(i,j,1,isssc12) = sedlay(i,j,1,isssc12)+prcaca(i,j)/(porsol(1)*seddw(1))
+      sedlay(i,j,1,isssc12) = sedlay(i,j,1,isssc12)+prcaca_(i,j)/(porsol(1)*seddw(1)) &
+         &                  * rdtsed
 #ifdef __c_isotopes
       sedlay(i,j,1,isssc13) = sedlay(i,j,1,isssc13)+prca13(i,j)/(porsol(1)*seddw(1))
       sedlay(i,j,1,isssc14) = sedlay(i,j,1,isssc14)+prca14(i,j)/(porsol(1)*seddw(1))
 #endif
-      prcaca(i,j) = 0.
+      prcaca_(i,j) = 0.
 #ifdef __c_isotopes
       prca13(i,j) = 0.
       prca14(i,j) = 0.
@@ -477,13 +494,13 @@ do k=1,ks
       if(omask(i,j) > 0.5) then
          umfa = porsol(k)/porwat(k)
          solrat(i,k) = sedlay(i,j,k,isssc12)                           &
-            &               * dissot / (1.+dissot*sediso(i,k))
+            &        * dissot / (1.+dissot*sediso(i,k))
          posol = sediso(i,k)*solrat(i,k)
          sedlay(i,j,k,isssc12) = sedlay(i,j,k,isssc12)-posol
          powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                 &
-     &        +posol*umfa+(aerob(i,k)+anaerob(i,k))*122.
+            &                  + posol*umfa+(aerob(i,k)+anaerob(i,k))*122.
          powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                 &
-     &        +2.*posol*umfa-16.*(aerob(i,k)+anaerob(i,k))
+            &                  + 2.*posol*umfa-16.*(aerob(i,k)+anaerob(i,k))
 #ifdef __c_isotopes
          ratc13 = sedlay(i,j,k,isssc13)/(sedlay(i,j,k,isssc12)+1.e-24)
          ratc14 = sedlay(i,j,k,isssc14)/(sedlay(i,j,k,isssc12)+1.e-24)
@@ -501,7 +518,8 @@ enddo
 8888  CONTINUE
 !$OMP END PARALLEL DO
 
-call dipowa(kpie,kpje,kpke,pdlxp,pdlyp,omask)
+call dipowa(kpie,kpje,kpke,pdlxp,pdlyp,omask,                        &
+   &        bolay_)
 
 !ik add clay sedimentation onto sediment
 !ik this is currently assumed to depend on total and corg sedimentation:
@@ -511,7 +529,8 @@ call dipowa(kpie,kpje,kpke,pdlxp,pdlyp,omask)
 do j=1,kpje
    do i=1,kpie
       sedlay(i,j,1,issster) = sedlay(i,j,1,issster)                 &
-         &                  + produs(i,j) / (porsol(1)*seddw(1))
+         &                  + produs_(i,j) / (porsol(1)*seddw(1))   &
+         &                  * rdtsed
    enddo
 enddo
 !$OMP END PARALLEL DO
@@ -519,16 +538,16 @@ enddo
 !$OMP PARALLEL DO
 do j=1,kpje
    do i=1,kpie
-      silpro(i,j) = 0.
-      prorca(i,j) = 0.
+      silpro_(i,j) = 0.
+      prorca_(i,j) = 0.
 #ifdef __c_isotopes
       pror13(i,j) = 0.
       pror14(i,j) = 0.
       prca13(i,j) = 0.
       prca14(i,j) = 0.
 #endif
-      prcaca(i,j) = 0.
-      produs(i,j) = 0.
+      prcaca_(i,j) = 0.
+      produs_(i,j) = 0.
    enddo
 enddo
 !$OMP END PARALLEL DO

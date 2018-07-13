@@ -15,6 +15,8 @@
 !     J.Schwinger       *GFI, Bergen*    2014-05-21
 !     - moved copying of tracer field to ocetra to micom2hamocc 
 !       and hamocc2micom
+!     M.M.P. van Hulten *GFI, Bergen*    2018-07-12
+!     - pulled out sediment code into proper sediment_step() routine
 !
 !**   Interface to ocean model (parameter list):
 !     -----------------------------------------
@@ -58,6 +60,7 @@
 #ifdef RIV_GNEWS
       use mo_riverinpt
 #endif
+      !!!use mo_common_bgc, only: omask
 
       implicit none
 
@@ -295,8 +298,17 @@
 !--------------------------------------------------------------------
 !     Sediment module
 
-      call sediment_step(kpie,kpje,kpke,pglat, pddpo,pdlxp,pdlyp,psao,prho, omask)
-
+      do j = 1, kpje
+         do i = 1, kpie
+            do l = 1, nocetra
+               ocetra_kbo(i,j,l) = ocetra(i,j,kbo(i,j),l)
+            enddo
+         enddo
+      enddo
+      call sediment_step(kpie, kpje, kpke, pglat, pddpo, pdlxp, pdlyp,  &
+         &               psao, prho, &!omask,            &
+         &               ocetra_kbo, bolay, keqb,                       &
+         &               prorca, prcaca, silpro, produs, co3)
 
 !---------------------------------------------------------------------
 !     Accumulate global fields and write output files (note: should 

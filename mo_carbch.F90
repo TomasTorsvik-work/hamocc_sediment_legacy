@@ -38,6 +38,7 @@
       implicit none
       
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: ocetra
+      REAL, DIMENSION (:,:,:),   ALLOCATABLE :: ocetra_kbo
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atm      
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atmflx
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3
@@ -110,6 +111,10 @@
         ALLOCATE (ocetra(kpie,kpje,kpke,nocetra),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory ocetra'
         ocetra(:,:,:,:) = 0.0
+
+        ALLOCATE (ocetra_kbo(kpie,kpje,nocetra),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory ocetra_kbo'
+        ocetra_kbo(:,:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable hi ...'

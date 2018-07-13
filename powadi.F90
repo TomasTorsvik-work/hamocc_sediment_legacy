@@ -1,5 +1,4 @@
-#if defined(SED_OFFLINE)
-      SUBROUTINE powadi_onlysed(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask)
+      SUBROUTINE powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask, bolay_)
 
 !
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/powadi.f90,v $\\
@@ -47,6 +46,9 @@
 
       USE mo_carbch
       USE mo_sedmnt
+#if defined(DSED_OFFLINE)
+      USE mo_sedmnt_offline
+#endif
       USE mo_biomod
       use mo_param1_bgc
 
@@ -61,11 +63,12 @@
       REAL :: omask(kpie,kpje)
       INTEGER :: kpie,kpje,i,j,k,l
       REAL :: asu,alo
+      real, intent(in) :: bolay_(kpie,kpje)
 
       DO 1321 k=1,ks
-         asu=sedict*seddzi(k)*porwah(k) * dtsed/dtbgc
+         asu=sedict*seddzi(k)*porwah(k) * rdtsed
          alo=0.
-         IF(k.LT.ks)alo=sedict*seddzi(k+1)*porwah(k+1) * dtsed/dtbgc
+         IF (k.LT.ks) alo = sedict*seddzi(k+1)*porwah(k+1) * rdtsed
          DO 1321 i=1,kpie
             tredsy(i,k,1) = -asu
             tredsy(i,k,3) = -alo
@@ -75,12 +78,12 @@
 
          k=0
          asu=0.
-         alo=sedict*seddzi(1)*porwah(1) * dtsed/dtbgc
+         alo=sedict*seddzi(1)*porwah(1) * rdtsed
          DO 1421 i=1,kpie
           IF(omask(i,j).GT.0.5) THEN
               tredsy(i,k,1) = -asu
               tredsy(i,k,3) = -alo
-              tredsy(i,k,2) = bolven(i)*bolay_clim(i,j,imonth)                   &
+              tredsy(i,k,2) = bolven(i)*bolay_(i,j)                   &
      &                        -tredsy(i,k,1)-tredsy(i,k,3)
           ELSE
 	      tredsy(i,k,1) = 0
@@ -120,4 +123,3 @@
 
       RETURN
       END
-#endif

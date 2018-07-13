@@ -8,7 +8,7 @@ c
       use mod_dia, only : diafnm,sigmar1,iotype
       use mo_control_bgc, only : dtbgc
 #if defined(SED_OFFLINE)
-     .                         , do_spinup, imonth, iyear
+     .                         , ldo_spinup, imonth, iyear
 #endif
       use mo_biomod, only: k0100,k0500,k1000,k2000,k4000
       use mo_bgcmean
@@ -22,8 +22,9 @@ c
 c
       integer i,j,k,l,nt
       integer nhour,ny,nm,nd,dayfrac,irec(nbgcmax),cmpflg
-      character*80 fname(nbgcmax)
-      character startdate*20,timeunits*30
+      character(len=80) fname(nbgcmax)
+      character(len=20) startdate
+      character(len=30) timeunits
       real datenum,rnacc
       logical append2file(nbgcmax)
       data append2file /nbgcmax*.false./
@@ -41,7 +42,7 @@ c --- set time information
 c
 c --- get file name
 #if defined(SED_OFFLINE)
-      if ( do_spinup ) then
+      if ( ldo_spinup ) then
          if (.not.append2file(iogrp)) then
             if ( imonth == 0 ) then
                call diafnm(runid,runid_len,expcnf,"hsedy", ! mod_dia.F
@@ -118,7 +119,7 @@ c --- write auxillary dimension information
       call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
 c
 #if defined(SED_OFFLINE)
-      if ( .not. do_spinup ) then
+      if ( .not. ldo_spinup ) then
 #endif
 c --- finalize accumulation 
       call finlyr(jphyto(iogrp),jdp(iogrp))
@@ -786,7 +787,7 @@ c
       call ncattr('bounds','depth_bnds')  
       call ncdefvar('depth_bnds','bounds depth',ndouble,8)
 #if defined(SED_OFFLINE)
-      if ( .not. do_spinup ) then
+      if ( .not. ldo_spinup ) then
 #endif
       call ncdefvar3d(SRF_KWCO2(iogrp),cmpflg,'p',
      .  'kwco2',' ',' ',' ',0)

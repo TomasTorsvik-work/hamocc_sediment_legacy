@@ -37,23 +37,30 @@
 
       REAL    :: dtbgc            !  HAMOCC time step length [sec].
       REAL    :: dtb              !  HAMOCC time step length [days].
+      INTEGER :: ndtdaybgc        !  time steps per day.
+!#if defined(SED_OFFLINE)
+      REAL    :: dtoff            !  off-line sediment time step length [sec].
+      REAL    :: dto              !  off-line sediment time step length [days].
+      REAL    :: ndtdayoff        !  time steps per day for off-line sediment.
+!#endif
       REAL    :: dtsed            !  sediment time step length [sec].
       REAL    :: dts              !  sediment time step length [days].
-      INTEGER :: ndtdaybgc        !  time steps per day.
-      REAL    :: ndtdaysed        !  time steps per day for sediment.
+      REAL    :: rdtsed           !  ratio of sediment over biogeochemistry time step.
 
       INTEGER :: ldtbgc           !  time step number from bgc restart file
       INTEGER :: ldtrunbgc        !  actual time steps of run.
 #if defined(SED_OFFLINE)
-      LOGICAL :: do_spinup = .false.!  whether to run the sediment spin-up code.
-      INTEGER :: nstep_in_month   !  accumulation counter for SED_WCLIM.
+      INTEGER :: nstep_in_month   !  accumulation counter for SED_OFFLINE.
       INTEGER :: imonth, iyear    !  counters that must be available to ncwrt_bgc().
       INTEGER :: maxyear_sediment !  number of years for off-line sediment integration.
       INTEGER :: maxyear_ocean    !  number of years for full MICOM-HAMOCC integration.
-      LOGICAL :: lsed_rclim       !  whether to read bottom seawater climatology from file.
-      LOGICAL :: lsed_wclim       !  whether to write bottom seawater climatology to file.
-      LOGICAL :: lsed_spinup      !  whether to spin up the sediment.
+      LOGICAL :: lsed_rclim       !  whether to read bottom seawater climatology from file (nml).
+      LOGICAL :: lsed_wclim       !  whether to write bottom seawater climatology to file (nml).
+      LOGICAL :: lsed_spinup      !  whether to spin up the sediment (nml).
+      LOGICAL :: lread_clim       !  whether to read the climatology now.
+      LOGICAL :: lwrite_clim      !  whether to write the climatology now.
 #endif
+      LOGICAL :: ldo_spinup       !  whether to spin up the sediment now.
       INTEGER :: nyear_global     !  ocean model year number, including sediment().
       LOGICAL :: is_end_of_day    !  whether we are at the last timestep of the day.
 

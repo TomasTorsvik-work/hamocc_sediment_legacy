@@ -68,6 +68,7 @@
 
       USE mo_carbch
       USE mo_sedmnt
+      USE mo_sedmnt_offline, only: alloc_mem_sedmnt_offline
       USE mo_biomod
       USE mo_control_bgc
       use mo_param1_bgc 
@@ -123,10 +124,12 @@
       ndtdaybgc=NINT(86400./dtbgc)  !  time steps per day [No].
       dtb=1./ndtdaybgc              !  time step length [days].
 
-      dtsed = 3600*24*nday_in_year/12  !  time step length [sec].
-      ndtdaysed=86400./dtsed           !  time steps per day [No].
-      dts=1./ndtdaysed                 !  time step length [days].
-      
+#if defined(SED_OFFLINE)
+      dtoff = 3600*24*nday_in_year/12  !  time step length [sec].
+      ndtdayoff=86400./dtoff           !  time steps per day [No].
+      dto=1./ndtdayoff                 !  time step length [days].
+#endif
+
       icyclibgc = kpicycli
       ndtrunbgc = kpndtrun
 
@@ -156,6 +159,9 @@
 ! Allocate memory : sediment
 !
       CALL ALLOC_MEM_SEDMNT(kpie,kpje)
+#if defined(SED_OFFLINE)
+      call alloc_mem_sedmnt_offline(kpie, kpje)
+#endif
 
 !                        
 ! Allocate memory : inorganic carbon cycle

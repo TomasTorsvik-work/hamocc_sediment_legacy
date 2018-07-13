@@ -86,9 +86,11 @@
 #ifdef SED_OFFLINE
       namelist /bgcnml/ atm_co2, maxyear_sediment, maxyear_ocean,    &
          &              lsed_rclim, lsed_wclim, lsed_spinup
+      if (lsed_rclim) lread_clim = .true.
 #else
       namelist /bgcnml/ atm_co2
 #endif
+      ldo_spinup = .false.
 
 !
 ! Initialize overall time step counter.
