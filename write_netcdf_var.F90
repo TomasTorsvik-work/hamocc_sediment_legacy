@@ -2,13 +2,25 @@ subroutine write_netcdf_var(ncid,desc,arr,klev,time)
 
 !-----------------------------------------------------------------------
 !
-! *write_netcdf_var* - MPI gather and write variable as netCDF data
+! MPI gather and write variable as netCDF data
+!
+! Copyright (C) 2018 Marco van Hulten <Marco.Hulten@uib.no> et al.
+!                    Geophysical Institute @ University of Bergen
+!
+! This subroutine is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! Method:
 !
 ! Gathers a global variable from all PEs and writes it to a netCDF file.
 ! This will be done for all levels klev, and for the given time index.
 ! The first index is always idm and second jdm, so fix the first index
 ! of keqb(:,1:idm,1:jdm,:) when using this routine.
 ! The netCDF file is only accessed by mnproc=1.
+!
+! History:
 !
 ! Rewritten by Marco van Hulten (2018).  Improved logic and readability,
 ! removed PNETCDF code.

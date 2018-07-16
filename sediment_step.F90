@@ -7,7 +7,8 @@ subroutine sediment_step(kpie, kpje, kpke, pglat, pddpo, pdlxp, pdlyp,  &
 !
 ! Perform one sediment timestep
 !
-! Copyright (C) 2018  University of Bergen
+! Copyright (C) 2018 Marco van Hulten <Marco.Hulten@uib.no> et al.
+!                    Geophysical Institute @ University of Bergen
 !
 ! This subroutine is free software: you can redistribute it and/or modify
 ! it under the terms of the GNU General Public License as published by

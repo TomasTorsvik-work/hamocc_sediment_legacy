@@ -10,11 +10,17 @@
 !
 !**** *POWADI* - vertical diffusion with simultaneous dissolution.
 !
-!     Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+! Copyright (C) 2001 Ernst Maier-Reimer,    *MPI-Met, HH*    10.04.01
+! Copyright (C) 2001 S. Legutke,            *MPI-MaD, HH*    10.04.01
+! Copyright (C) 2018 Marco van Hulten <Marco.Hulten@uib.no> et al.
+!                    Geophysical Institute @ University of Bergen
 !
-!     Modified
-!     --------
-!     S.Legutke,        *MPI-MaD, HH*    10.04.01
+! History:
+!
+! Ernst Maier-Reimer
+! - Initial code.
+! Marco van Hulten <Marco.Hulten@uib.no>           2017-07-12
+! - Added argument for off-line use.
 !
 !     Purpose
 !     -------

@@ -9,6 +9,7 @@ subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,        &
 ! Copyright (C) 2004 Ernst Maier-Reimer,  *MPI-Met, HH*
 ! Copyright (C) 2004 S. Legutke,          *MPI-MaD, HH*
 ! Copyright (C) 2018 Marco van Hulten <Marco.Hulten@uib.no>
+!                    Geophysical Institute @ University of Bergen
 !
 ! This module is free software: you can redistribute it and/or modify
 ! it under the terms of the GNU General Public License as published by

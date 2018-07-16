@@ -6,6 +6,7 @@ module mo_sedmnt_offline
 ! Routines for offline sediment spin-up
 !
 ! Copyright (C) 2018 Marco van Hulten <Marco.Hulten@uib.no>
+!                    Geophysical Institute @ University of Bergen
 !
 ! This module is free software: you can redistribute it and/or modify
 ! it under the terms of the GNU General Public License as published by

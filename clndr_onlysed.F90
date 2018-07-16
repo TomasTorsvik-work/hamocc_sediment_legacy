@@ -2,10 +2,20 @@
 subroutine updcln_onlysed()
 
 !-----------------------------------------------------------------------
+!
 ! Update the calendar
+!
+! Copyright (C) 2018 Marco van Hulten <Marco.Hulten@uib.no>
+!                    Geophysical Institute @ University of Bergen
+!
+! This subroutine is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
 !
 ! 2018-06   Code based on updcln() from phy/clndr.F, here adjusted for
 !           monthly timestepping in the sediment() spin-up routine.
+!
 !-----------------------------------------------------------------------
 
 use mod_xc
