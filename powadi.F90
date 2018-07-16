@@ -1,4 +1,4 @@
-      SUBROUTINE powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask, bolay_)
+      SUBROUTINE powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,bolay_)
 
 !
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/powadi.f90,v $\\
@@ -59,6 +59,7 @@
       use mo_param1_bgc
 
       USE mo_control_bgc
+      use mo_common_bgc, only: omask
 
       implicit none
 
@@ -66,7 +67,6 @@
       REAL :: solrat(kpie,ks)
       REAL :: bolven(kpie)
       REAL :: TREDSY(kpie,0:ks,3)
-      REAL :: omask(kpie,kpje)
       INTEGER :: kpie,kpje,i,j,k,l
       REAL :: asu,alo
       real, intent(in) :: bolay_(kpie,kpje)

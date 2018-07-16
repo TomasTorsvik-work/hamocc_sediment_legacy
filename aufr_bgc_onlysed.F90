@@ -1,3 +1,4 @@
+#if defined(SED_OFFLINE)
 subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
    &                       ,rstfnm)
 
@@ -219,4 +220,6 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
 
    RETURN
 #endif
-end
+
+end module aufr_bgc_onlysed
+#endif

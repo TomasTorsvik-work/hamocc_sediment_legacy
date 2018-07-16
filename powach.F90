@@ -183,22 +183,23 @@ enddo
 ! Solve for new undersaturation sediso, from current undersaturation sedb1,
 ! and first guess of new solid sediment solrat.
 
-call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
+call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,bolay_)
 
 ! Store the flux for budget.
 ! Add sedimentation to first layer.
 
-! NOTE: ocetra(:,:,kbo,:) could be replaced by ocetra_, but then the former
-!       would need to be updated by the latter later on (MvH)!
 do i=1,kpie
    if(omask(i,j) > 0.5) then
-         sedfluxo(i,j,ipowasi) = sedfluxo(i,j,ipowasi) +             &
-      &    (silsat-sediso(i,0) - ocetra(i,j,kbo(i,j),isilica))*bolay_(i,j)
+         sedfluxo(i,j,ipowasi) = sedfluxo(i,j,ipowasi) +                   &
+            &    (silsat-sediso(i,0) - ocetra_(i,j,isilica))*bolay_(i,j)
 
+         ! NOTE: If ocetra_(:,:,:) instead of ocetra(:,:,kbo,:) were to be updated,
+         !       the latter would need to be updated by the former later on (MvH)!
+         !
          if (.not. ldo_spinup) ocetra(i,j,kbo(i,j),isilica) = silsat - sediso(i,0)
-         sedlay(i,j,1,issssil) =                                     &
-      &  sedlay(i,j,1,issssil) + silpro_(i,j) / (porsol(1)*seddw(1)) &
-      &                                        * rdtsed
+         sedlay(i,j,1,issssil) =                                           &
+            &  sedlay(i,j,1,issssil) + silpro_(i,j) / (porsol(1)*seddw(1)) &
+            &                                       * rdtsed
    endif
 enddo
 
@@ -261,7 +262,7 @@ enddo
 ! Solve for new O2 concentration sediso, from current concentration sedb1,
 ! and first guess of new solid sediment solrat.
 
-call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
+call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,bolay_)
 
 ! Update water column oxygen, and store the flux for budget (opwflux).
 ! Add sedimentation to first layer.
@@ -277,7 +278,7 @@ do i=1,kpie
       sedlay(i,j,1,issso14)                                     &
          &      = sedlay(i,j,1,issso14)+pror14(i,j)/(porsol(1)*seddw(1))
 #endif
-      if (.not. ldo_spinup)   prorca_(i,j) = 0.
+      if (.not. ldo_spinup)   prorca(i,j) = 0.
 #ifdef __c_isotopes
          pror13(i,j) = 0.
          pror14(i,j) = 0.
@@ -464,7 +465,7 @@ enddo
 ! Solve for new undersaturation sediso, from current undersaturation sedb1,
 ! and first guess of new solid sediment solrat.
 
-call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
+call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,bolay_)
 
 ! There is no exchange between water and sediment with respect to co3 so far.
 ! Add sedimentation to first layer.
@@ -536,6 +537,7 @@ do j=1,kpje
 enddo
 !$OMP END PARALLEL DO
 
+if (ldo_spinup) then
 !$OMP PARALLEL DO
 do j=1,kpje
    do i=1,kpie
@@ -552,6 +554,7 @@ do j=1,kpje
    enddo
 enddo
 !$OMP END PARALLEL DO
+endif
 
 return
 end

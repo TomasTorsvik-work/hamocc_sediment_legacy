@@ -60,7 +60,6 @@
 #ifdef RIV_GNEWS
       use mo_riverinpt
 #endif
-      !!!use mo_common_bgc, only: omask
 
       implicit none
 
@@ -306,7 +305,7 @@
          enddo
       enddo
       call sediment_step(kpie, kpje, kpke, pglat, pddpo, pdlxp, pdlyp,  &
-         &               psao, prho, &!omask,            &
+         &               psao, prho, omask,                             &
          &               ocetra_kbo, bolay, keqb,                       &
          &               prorca, prcaca, silpro, produs, co3)
 

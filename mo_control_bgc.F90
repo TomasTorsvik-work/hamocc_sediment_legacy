@@ -57,10 +57,10 @@
       LOGICAL :: lsed_rclim       !  whether to read bottom seawater climatology from file (nml).
       LOGICAL :: lsed_wclim       !  whether to write bottom seawater climatology to file (nml).
       LOGICAL :: lsed_spinup      !  whether to spin up the sediment (nml).
-      LOGICAL :: lread_clim       !  whether to read the climatology now.
-      LOGICAL :: lwrite_clim      !  whether to write the climatology now.
+      LOGICAL :: lread_clim       !  whether reading the climatology now.
+      LOGICAL :: lwrite_clim      !  whether writing the climatology now.
 #endif
-      LOGICAL :: ldo_spinup       !  whether to spin up the sediment now.
+      LOGICAL :: ldo_spinup       !  whether spinning up the sediment now.
       INTEGER :: nyear_global     !  ocean model year number, including sediment().
       LOGICAL :: is_end_of_day    !  whether we are at the last timestep of the day.
 

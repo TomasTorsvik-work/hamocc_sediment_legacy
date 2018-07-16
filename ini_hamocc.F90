@@ -68,7 +68,9 @@
 
       USE mo_carbch
       USE mo_sedmnt
+#if defined(SED_OFFLINE)
       USE mo_sedmnt_offline, only: alloc_mem_sedmnt_offline
+#endif
       USE mo_biomod
       USE mo_control_bgc
       use mo_param1_bgc 

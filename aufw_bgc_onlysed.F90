@@ -670,5 +670,6 @@ endif ! only for first month
    ENDIF
 
    RETURN
-end
+
+end module aufr_bgc_onlysed
 #endif

@@ -1,5 +1,5 @@
 subroutine sediment_step(kpie, kpje, kpke, pglat, pddpo, pdlxp, pdlyp,  &
-   &                     psao_, prho_,                                  &
+   &                     psao_, prho_, omask,                           &
    &                     ocetra_, bolay_, keqb_,                        &
    &                     prorca_, prcaca_, silpro_, produs_, co3_)
 
@@ -39,7 +39,6 @@ use mo_bgcmean
 use mo_control_bgc!, only: io_stdo_bgc
 use mo_param1_bgc
 use mo_sedmnt
-use mo_common_bgc, only: omask
 
 implicit none
 
@@ -55,7 +54,7 @@ real, intent(in)     :: pdlxp  (kpie,kpje)
 real, intent(in)     :: pdlyp  (kpie,kpje)
 real, intent(in)     :: psao_  (kpie,kpje)
 real, intent(in)     :: prho_  (kpie,kpje)
-!real, intent(in)     :: omask  (kpie,kpje)
+real, intent(in)     :: omask  (kpie,kpje)
 real, intent(inout)  :: ocetra_(kpie,kpje,nocetra)
 real, intent(in)     :: bolay_ (kpie,kpje)
 real, intent(in)     :: keqb_  (11,kpie,kpje)
@@ -77,7 +76,7 @@ else
 endif
 
 call powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,              &
-        &   bolay_,ocetra_,keqb_,prorca_,prcaca_,silpro_,produs_,co3_)
+   &        bolay_,ocetra_,keqb_,prorca_,prcaca_,silpro_,produs_,co3_)
 
 #ifdef PBGC_CK_TIMESTEP
 IF (mnproc.eq.1) THEN
