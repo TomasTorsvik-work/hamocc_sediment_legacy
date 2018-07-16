@@ -269,7 +269,7 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
 
    if ( ldo_spinup ) then
       ! set up sediment layers (mainly for much higher diffusion rate)
-      call bodensed_onlysed(kpie,kpje,kpke,pddpo)
+      call bodensed(kpie,kpje,kpke,pddpo)
 
       ! save calendar variables
       nday_save         = nday

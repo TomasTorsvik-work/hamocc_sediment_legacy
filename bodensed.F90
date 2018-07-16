@@ -1,4 +1,4 @@
-      SUBROUTINE bodensed_onlysed(kpie,kpje,kpke,pddpo)
+      SUBROUTINE bodensed(kpie,kpje,kpke,pddpo)
 
 !
 !$Source: /server/cvs/mpiom1/mpi-om/src_hamocc/bodensed.f90,v $\\
@@ -38,7 +38,6 @@
 !     *INTEGER* *kpje*    - 2nd dimension of model grid.
 !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
 !     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
-!     *REAL*    *dtsed*   - sediment model time step [sec].
 !
 !     Externals
 !     ---------
