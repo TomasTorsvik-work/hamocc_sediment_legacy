@@ -60,6 +60,14 @@
       REAL :: sumsed
       INTEGER :: kpie,kpje,kpke,i,j,k
 
+      if (ldo_spinup) then
+         dtsed = dtoff
+         rdtsed = dtoff/dtbgc
+      else
+         dtsed = dtbgc
+         rdtsed = 1.0
+      endif
+
       dzs(1) = 0.001
       dzs(2) = 0.003
       dzs(3) = 0.005

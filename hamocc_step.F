@@ -7,10 +7,9 @@ c --- ------------------------------------------------------------------
 c
       use mod_xc
       use mo_bgcmean
-      use mo_control_bgc, only: nyear_global, is_end_of_day, io_stdo_bgc
+      use mo_control_bgc
 #ifdef SED_OFFLINE
       use mo_sedmnt_offline, only: sed_offline ! subroutine
-      use mo_control_bgc, only: maxyear_sediment
 #endif
 c
       implicit none

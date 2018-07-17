@@ -59,12 +59,7 @@ module mo_sedmnt_offline
 !
 !-----------------------------------------------------------------------
 
-use mo_control_bgc, only: nyear_global, is_end_of_day, io_stdo_bgc   &
-   &                    , maxyear_ocean                              &
-   &                    , rmasko, nstep_in_month                     &
-   &                    , lsed_rclim, lsed_wclim, lsed_spinup        &
-   &                    , lread_clim, lwrite_clim, ldo_spinup        &
-   &                    , imonth, iyear
+use mo_control_bgc
 use mo_carbch,      only: ocetra, keqb, co3
 use mo_param1_bgc,  only: nocetra, idet, icalc, iopal, ifdust
 use mo_biomod,      only: kbo, bolay, wpoc, wmin, wmax, wdust        &
@@ -303,7 +298,7 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
             endif
          enddo
          ! write yearly outputs (assuming second index is yr)
-         nacc_bgc(2) = 1
+         nacc_bgc(2) = 12
          if (GLB_INVENTORY(2).ne.0)                                        &
             &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
          imonth = 0 ! triggers writing of yearly averages
@@ -335,10 +330,6 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
 end subroutine sed_offline
 
 subroutine alloc_mem_sedmnt_offline(kpie, kpje)
-   use mod_xc
-   use mo_control_bgc
-   use mo_param1_bgc
-
    integer :: kpie, kpje
    integer :: errstat
 

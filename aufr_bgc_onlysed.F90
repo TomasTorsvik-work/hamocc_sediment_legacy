@@ -221,5 +221,5 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
    RETURN
 #endif
 
-end module aufr_bgc_onlysed
+end subroutine aufr_bgc_onlysed
 #endif

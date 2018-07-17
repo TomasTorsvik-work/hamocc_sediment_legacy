@@ -7,9 +7,7 @@ c
       use mod_xc
       use mod_dia, only : diafnm,sigmar1,iotype
       use mo_control_bgc, only : dtbgc
-#if defined(SED_OFFLINE)
      .                         , ldo_spinup, imonth, iyear
-#endif
       use mo_biomod, only: k0100,k0500,k1000,k2000,k4000
       use mo_bgcmean
 c      
@@ -41,7 +39,6 @@ c --- set time information
       datenum=time-time0-0.5*diagfq_bgc(iogrp)/nstep_in_day
 c
 c --- get file name
-#if defined(SED_OFFLINE)
       if ( ldo_spinup ) then
          if (.not.append2file(iogrp)) then
             if ( imonth == 0 ) then
@@ -56,8 +53,7 @@ c --- get file name
          else
             irec(iogrp)=irec(iogrp)+1
          endif
-      else
-#endif
+      else ! ldo_spinup
       if (.not.append2file(iogrp)) then
         call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp)),
      .  nstep,filefq_bgc(iogrp)/real(nstep_in_day),filemon_bgc(iogrp),
@@ -67,9 +63,7 @@ c --- get file name
       else
         irec(iogrp)=irec(iogrp)+1
       endif
-#if defined(SED_OFFLINE)
-      endif
-#endif
+      endif ! ldo_spinup
       if (((fileann_bgc(iogrp).and.nday_of_year.eq.1.or.
      .  filemon_bgc(iogrp).and.nday.eq.1).and.mod(nstep,nstep_in_day)
      .  .le.1).or..not.(fileann_bgc(iogrp).or.filemon_bgc(iogrp)).and.
@@ -118,9 +112,7 @@ c --- write auxillary dimension information
       call ncwrt1('depth','depth',depthslev)
       call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
 c
-#if defined(SED_OFFLINE)
       if ( .not. ldo_spinup ) then
-#endif
 c --- finalize accumulation 
       call finlyr(jphyto(iogrp),jdp(iogrp))
       call finlyr(jgrazer(iogrp),jdp(iogrp))
@@ -554,9 +546,7 @@ c --- Store 3d level fields
      .  rnacc,0.,cmpflg,'natomegaclvl',
      .  'Natural OmegaC',' ','-')
 #endif
-#if defined(SED_OFFLINE)
       endif
-#endif
 c
 c --- Store sediment fields
       call wrtsdm(jpowaic(iogrp),SDM_POWAIC(iogrp),rnacc*1e3,0.,cmpflg,
@@ -786,9 +776,7 @@ c
       call ncattr('positive','down')
       call ncattr('bounds','depth_bnds')  
       call ncdefvar('depth_bnds','bounds depth',ndouble,8)
-#if defined(SED_OFFLINE)
       if ( .not. ldo_spinup ) then
-#endif
       call ncdefvar3d(SRF_KWCO2(iogrp),cmpflg,'p',
      .  'kwco2',' ',' ',' ',0)
       call ncdefvar3d(SRF_PCO2(iogrp),cmpflg,'p',
@@ -1066,9 +1054,7 @@ c --- define 3d level fields
       call ncdefvar3d(LVL_NATOMEGAC(iogrp),cmpflg,'p',
      .  'natomegaclvl','Natural OmegaC',' ','1',2)
 #endif
-#if defined(SED_OFFLINE)
       endif
-#endif
 c
 c --- define sediment fields
       call ncdefvar3d(SDM_POWAIC(iogrp),cmpflg,'p',

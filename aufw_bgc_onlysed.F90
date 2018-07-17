@@ -671,5 +671,5 @@ endif ! only for first month
 
    RETURN
 
-end module aufr_bgc_onlysed
+end subroutine aufw_bgc_onlysed
 #endif
