@@ -52,7 +52,7 @@
 
       USE mo_carbch
       USE mo_sedmnt
-#if defined(DSED_OFFLINE)
+#if defined(SED_OFFLINE)
       USE mo_sedmnt_offline
 #endif
       USE mo_biomod

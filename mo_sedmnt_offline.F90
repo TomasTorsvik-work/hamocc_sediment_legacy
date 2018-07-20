@@ -193,7 +193,7 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
    if (lread_clim) then
       call read_clim()
       lread_clim = .false.
-   else
+   elseif mod(nyear,maxyear_ocean)==0 then !FIXME: or are we anyway at maxyear_ocean?
       ! Accumulate the bottom seawater fields from HAMOCC
       nstep_in_month  = nstep_in_month + 1
       do iocetra = 1, nocetra
@@ -222,8 +222,8 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
          nday_of_month = nday_of_month - nd_in_m(i)
       enddo
 
-      ! Calculate tracer monthly average
       if ( nday_of_month==nd_in_m(nmonth) .and. is_end_of_day ) then
+         ! Calculate tracer monthly average
          if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
             &  'hamocc_step(): end of month, set tracer avg for last month'
          ocetra_kbo_avg = ocetra_kbo_avg / nstep_in_month
@@ -255,7 +255,9 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
    ! else wait until the end of the year when we have bottom-water fields
    if (lsed_rclim) then
       ldo_spinup = .true.
-   elseif (maxyear_ocean<=0) then
+   elseif (maxyear_ocean<=0) then   ! FIXME: not maxyear (== maxyear_sed)??
+                                    ! ALSO:  if maxyear is argument, why are
+                                    ! maxyear_* accessible?? NEEDED ABOVE
       ldo_spinup = .false.
    else
       ldo_spinup = mod(nyear,maxyear_ocean)==0 .and. nday_of_year==nday_in_year  &
@@ -263,6 +265,9 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
    endif
 
    if ( ldo_spinup ) then
+      if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
+         &     'sed_offline(): sediment spin-up starting'
+
       ! set up sediment layers (mainly for much higher diffusion rate)
       call bodensed(kpie,kpje,kpke,pddpo)
 
@@ -276,10 +281,8 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
 
       do iyear = 1, maxyear
          nyear_global = nyear_global + 1
-         if (mnproc.eq.1) write(io_stdo_bgc,*) 'sediment(): nyear_global = ', nyear_global
+         if (mnproc.eq.1) write(io_stdo_bgc,*) 'sed_offline(): nyear_global = ', nyear_global
          do imonth = 1, 12
-            if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
-               &     'hamocc_step(): sediment spin-up starting'
             call updcln_onlysed() ! do a monthly calendar update only for sediment_step()
             call sediment_step(idm,jdm,kdm,pglat, bgc_dp,bgc_dx,bgc_dy,    &
                & bgc_s_kbo_clim(:,:,imonth), bgc_rho_kbo_clim(:,:,imonth), &
@@ -323,7 +326,7 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
       nday_in_year = nday_in_year_save
 
       if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
-         &     'hamocc_step(): sediment spin-up ended'
+         &     'sed_offline(): sediment spin-up ended'
       endif
       ldo_spinup = .false.
    endif ! spin-up
