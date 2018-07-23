@@ -37,7 +37,7 @@ module mo_sedmnt_offline
 !     one-year MICOM/HAMOCC run over which monthly averages are
 !     accumulated.
 !
-! - subroutine sed_offline()
+! - subroutine sedmnt_offline()
 !     Main off-line sediment routine.
 !     If lsed_rclim is set (namelist), it will read_clim(), and then
 !     spin up the sediment by looping sediment_step() over maxyear_sediment.
@@ -45,6 +45,13 @@ module mo_sedmnt_offline
 !     averages of bottom water layer particle fluxes and dissolved
 !     concentrations by running HAMOCC for one year, writing the monthly
 !     averages to file through write_clim().
+!
+! - subroutine updcln_onlysed()
+!     Update the calendar based on updcln() from phy/clndr.F, here
+!     adjusted for monthly timestepping in the sediment() spin-up
+!     routine.
+!     NOTE: At the end of sedmnt_offline(), the calendar is set back to
+!     MICOM's last known date.
 !
 ! - subroutine alloc_mem_sedmnt_offline()
 !     Allocate memory for bottom-water climatology, analogous to mo_sedmnt's
@@ -55,6 +62,7 @@ module mo_sedmnt_offline
 ! History:
 !
 ! 2018-06   Initial version by MvH.
+! 2018-06   updcln_onlysed() based on updcln() from phy/clndr.F.
 ! 2018-07   Rewrite.
 !
 !-----------------------------------------------------------------------
@@ -109,11 +117,6 @@ character(len = *), parameter, private :: bscfnm = "bottom_seawater_clim.nc"
 integer, private :: nday_of_month ! current day of month
 
 contains
-
-subroutine sed_init()
-   ! Default action is not to do the sediment spin-up
-   ldo_spinup = .false.
-end subroutine
 
 subroutine read_clim()
    ! Read the bottom seawater climatology from the netCDF forcing file
@@ -173,8 +176,45 @@ subroutine write_clim()
    co3_kbo_avg = 0.0
 end subroutine write_clim
 
-subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
-                &      pglat, pddpo, pdlxp, pdlyp, omask)
+subroutine updcln_onlysed()
+
+!-----------------------------------------------------------------------
+! Update the calendar
+!-----------------------------------------------------------------------
+
+! get new date
+nday=1
+nmonth=nmonth+1
+if (nmonth > 12) then
+   nday_of_year=1
+   nmonth=1
+   nyear=nyear+1
+   if (calendar(1:3) == 'sta') then
+      if (mod(nyear,4)   == 0 .and.                                  &
+       & (mod(nyear,100) /= 0 .or. mod(nyear,400) == 0)) then
+         nd_in_m(2)=29
+         nday_in_year=366
+      else
+         nd_in_m(2)=28
+         nday_in_year=365
+      endif
+   endif
+endif
+
+if ( (calendar(1:3) == 'sta'  .or. calendar(1:3) == 'mix' .or.       &
+ &    calendar(1:3) == 'gre').and. nyear <= 1582 ) then
+   if (mnproc == 1) then
+      write (lp,*)                                                   &
+         & 'Do not use mixed Julian/Gregorian calendar before Oct 10th 1582!'
+   endif
+   call xcstop('(updcln)')
+endif
+
+return
+end subroutine updcln_onlysed
+
+subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
+   &                      pglat, pddpo, pdlxp, pdlyp, omask)
    ! FIXME: bit ugly:
    use mo_sedmnt, only: sedlay, powtra, burial
 
@@ -193,7 +233,7 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
    if (lread_clim) then
       call read_clim()
       lread_clim = .false.
-   elseif mod(nyear,maxyear_ocean)==0 then !FIXME: or are we anyway at maxyear_ocean?
+   elseif ( mod(nyear,maxyear_ocean)==0 ) then !FIXME: or are we anyway at maxyear_ocean?
       ! Accumulate the bottom seawater fields from HAMOCC
       nstep_in_month  = nstep_in_month + 1
       do iocetra = 1, nocetra
@@ -254,19 +294,19 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
    ! start immediately with sediment() if bottom water climatology is read,
    ! else wait until the end of the year when we have bottom-water fields
    if (lsed_rclim) then
-      ldo_spinup = .true.
+      lspinup_sediment = .true.
    elseif (maxyear_ocean<=0) then   ! FIXME: not maxyear (== maxyear_sed)??
                                     ! ALSO:  if maxyear is argument, why are
                                     ! maxyear_* accessible?? NEEDED ABOVE
-      ldo_spinup = .false.
+      lspinup_sediment = .false.
    else
-      ldo_spinup = mod(nyear,maxyear_ocean)==0 .and. nday_of_year==nday_in_year  &
+      lspinup_sediment = mod(nyear,maxyear_ocean)==0 .and. nday_of_year==nday_in_year  &
          &      .and. is_end_of_day
    endif
 
-   if ( ldo_spinup ) then
+   if ( lspinup_sediment ) then
       if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
-         &     'sed_offline(): sediment spin-up starting'
+         &     'sedmnt_offline(): sediment spin-up starting'
 
       ! set up sediment layers (mainly for much higher diffusion rate)
       call bodensed(kpie,kpje,kpke,pddpo)
@@ -281,7 +321,7 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
 
       do iyear = 1, maxyear
          nyear_global = nyear_global + 1
-         if (mnproc.eq.1) write(io_stdo_bgc,*) 'sed_offline(): nyear_global = ', nyear_global
+         if (mnproc.eq.1) write(io_stdo_bgc,*) 'sedmnt_offline(): nyear_global = ', nyear_global
          do imonth = 1, 12
             call updcln_onlysed() ! do a monthly calendar update only for sediment_step()
             call sediment_step(idm,jdm,kdm,pglat, bgc_dp,bgc_dx,bgc_dy,    &
@@ -326,11 +366,11 @@ subroutine sed_offline(kpie, kpje, kpke, maxyear,                    &
       nday_in_year = nday_in_year_save
 
       if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
-         &     'sed_offline(): sediment spin-up ended'
+         &     'sedmnt_offline(): sediment spin-up ended'
       endif
-      ldo_spinup = .false.
+      lspinup_sediment = .false.
    endif ! spin-up
-end subroutine sed_offline
+end subroutine sedmnt_offline
 
 subroutine alloc_mem_sedmnt_offline(kpie, kpje)
    integer :: kpie, kpje

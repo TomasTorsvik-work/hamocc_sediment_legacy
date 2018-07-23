@@ -67,7 +67,7 @@ real, intent(in)     :: co3_   (kpie,kpje)
 !-----------------------------------------------------------------------
 ! Sediment module
 
-if (ldo_spinup) then
+if (lspinup_sediment) then
    dtsed = dtoff
    rdtsed = dtoff/dtbgc
 else
@@ -75,7 +75,7 @@ else
    rdtsed = 1.
 endif
 
-call powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,              &
+call powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,                    &
    &        bolay_,ocetra_,keqb_,prorca_,prcaca_,silpro_,produs_,co3_)
 
 #ifdef PBGC_CK_TIMESTEP

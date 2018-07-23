@@ -1,4 +1,4 @@
-subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,        &
+subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,              &
    &       bolay_,ocetra_,keqb_,prorca_,prcaca_,silpro_,produs_,co3_)
 
 !-----------------------------------------------------------------------
@@ -56,7 +56,7 @@ subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,        &
 use mo_carbch, only: sedfluxo, ocetra ! TODO: should sedfluxo be in bottom water climatology?
 use mo_chemcon, only: calcon
 use mo_sedmnt
-#if defined(DSED_OFFLINE)
+#if defined(SED_OFFLINE)
 use mo_sedmnt_offline
 #endif
 use mo_biomod
@@ -72,7 +72,7 @@ real, intent(in)     :: psao_(kpie,kpje)
 real, intent(in)     :: prho_(kpie,kpje)
 
 real, intent(in)     :: pdlxp(kpie,kpje), pdlyp(kpie,kpje)
-real, intent(in)     :: omask(kpie,kpje)
+!real, intent(in)     :: omask(kpie,kpje)
 real, intent(in)     :: bolay_ (kpie,kpje)
 real, intent(inout)  :: ocetra_(kpie,kpje,nocetra)
 real, intent(in)     :: keqb_  (11,kpie,kpje)
@@ -196,7 +196,7 @@ do i=1,kpie
          ! NOTE: If ocetra_(:,:,:) instead of ocetra(:,:,kbo,:) were to be updated,
          !       the latter would need to be updated by the former later on (MvH)!
          !
-         if (.not. ldo_spinup) ocetra(i,j,kbo(i,j),isilica) = silsat - sediso(i,0)
+         if (.not. lspinup_sediment) ocetra(i,j,kbo(i,j),isilica) = silsat - sediso(i,0)
          sedlay(i,j,1,issssil) =                                           &
             &  sedlay(i,j,1,issssil) + silpro_(i,j) / (porsol(1)*seddw(1)) &
             &                                       * rdtsed
@@ -269,7 +269,7 @@ call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,bolay_)
 
 do i=1,kpie
    if(omask(i,j) > 0.5) then
-      if (.not. ldo_spinup) ocetra(i,j,kbo(i,j),ioxygen) = sediso(i,0)
+      if (.not. lspinup_sediment) ocetra(i,j,kbo(i,j),ioxygen) = sediso(i,0)
       sedlay(i,j,1,issso12)                                     &
          &      = sedlay(i,j,1,issso12)+prorca_(i,j)/(porsol(1)*seddw(1))
 #ifdef __c_isotopes
@@ -278,7 +278,7 @@ do i=1,kpie
       sedlay(i,j,1,issso14)                                     &
          &      = sedlay(i,j,1,issso14)+pror14(i,j)/(porsol(1)*seddw(1))
 #endif
-      if (.not. ldo_spinup)   prorca(i,j) = 0.
+      if (.not. lspinup_sediment)   prorca(i,j) = 0.
 #ifdef __c_isotopes
          pror13(i,j) = 0.
          pror14(i,j) = 0.
@@ -537,7 +537,7 @@ do j=1,kpje
 enddo
 !$OMP END PARALLEL DO
 
-if (ldo_spinup) then
+if (lspinup_sediment) then
 !$OMP PARALLEL DO
 do j=1,kpje
    do i=1,kpie

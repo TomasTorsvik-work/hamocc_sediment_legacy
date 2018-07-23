@@ -9,7 +9,7 @@ c
       use mo_bgcmean
       use mo_control_bgc
 #ifdef SED_OFFLINE
-      use mo_sedmnt_offline, only: sed_offline ! subroutine
+      use mo_sedmnt_offline, only: sedmnt_offline ! subroutine
 #endif
 c
       implicit none
@@ -43,8 +43,8 @@ c --- Apparently, nstep=0 (mod 18) at the start of a day!
       endif
 c
 #ifdef SED_OFFLINE
-      call sed_offline(idm, jdm, kdm, maxyear_sediment,
-     .                 pglat, bgc_dp, bgc_dx, bgc_dy, omask)
+      call sedmnt_offline(idm, jdm, kdm, maxyear_sediment,
+     .                    pglat, bgc_dp, bgc_dx, bgc_dy, omask)
 #endif
 c
       call hamocc4bcm(idm,jdm,kdm,pglat,bgc_swr,bgc_fice,

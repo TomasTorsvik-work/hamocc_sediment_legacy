@@ -44,9 +44,9 @@ subroutine dipowa(kpie,kpje,kpke,pdlxp,pdlyp,omask,                  &
 ! - All npowtra-1 properties are diffused in 1 go.
 ! JS: not mass conserving check c13/powtra/ocetra
 ! 2006-04-03
-! - Push into CVS.
+! - Pushed into CVS repository.
 ! 2018-07-13   Marco van Hulten
-! - Refactoring.
+! - Conversion to free format etc.
 ! - Generalised for normal use or within sediment spin-up.
 !
 !-----------------------------------------------------------------------
@@ -178,7 +178,7 @@ do iv = 1,npowtra
    enddo
 enddo
 
-if (.not. ldo_spinup) then
+if (.not. lspinup_sediment) then
    !
    ! sediment ocean interface
    !

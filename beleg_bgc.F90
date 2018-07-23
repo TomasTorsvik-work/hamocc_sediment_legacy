@@ -90,7 +90,7 @@
 #else
       namelist /bgcnml/ atm_co2
 #endif
-      ldo_spinup = .false.
+      lspinup_sediment = .false.
 
 !
 ! Initialize overall time step counter.
