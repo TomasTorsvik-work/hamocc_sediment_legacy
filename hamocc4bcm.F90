@@ -308,6 +308,7 @@
          &               psao, prho, omask,                             &
          &               ocetra_kbo, bolay, keqb,                       &
          &               prorca, prcaca, silpro, produs, co3)
+      ! Do not add ocetra back assignment code: we update ocetra directly!
 
 !---------------------------------------------------------------------
 !     Accumulate global fields and write output files (note: should 

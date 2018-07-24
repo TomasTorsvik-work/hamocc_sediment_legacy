@@ -59,6 +59,11 @@ subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,              &
 ! variable whose mutability is normally restricted with INTENT(IN).
 ! We could overload the INTENT, possibly through an optional logical
 ! argument in an INTERFACE, but it may be more confusing than helpful.
+! In the standard (.not. lspinup_sediment) case, prorca etc. will have
+! been passed for the prorca_ etc. dummy arguments (prorca_ => prorca),
+! so it doesn't matter to which we assign values.
+! However, in the standard case we must assign to ocetra(:,:,kbo,:) as
+! ocetra_ => ocetra_kbo (newly defined in hamocc4bcm.F90), not ocetra.
 !
 !-----------------------------------------------------------------------
 
@@ -292,11 +297,11 @@ do i = 1, kpie
 #endif
       if ( .not. lspinup_sediment ) then
          prorca(i,j) = 0.
-      endif
 #ifdef __c_isotopes
          pror13(i,j) = 0.
          pror14(i,j) = 0.
 #endif
+      endif
    endif
 enddo
 
@@ -492,11 +497,13 @@ do i = 1, kpie
       sedlay(i,j,1,isssc13) = sedlay(i,j,1,isssc13)+prca13(i,j)/(porsol(1)*seddw(1))
       sedlay(i,j,1,isssc14) = sedlay(i,j,1,isssc14)+prca14(i,j)/(porsol(1)*seddw(1))
 #endif
-      prcaca_(i,j) = 0.
+      if ( .not. lspinup_sediment ) then
+         prcaca(i,j) = 0.
 #ifdef __c_isotopes
-      prca13(i,j) = 0.
-      prca14(i,j) = 0.
+         prca13(i,j) = 0.
+         prca14(i,j) = 0.
 #endif
+      endif
    endif
 enddo
 

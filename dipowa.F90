@@ -182,8 +182,8 @@ if (.not. lspinup_sediment) then
    !
    ! sediment ocean interface
    !
-   ! NOTE: ocetra(:,:,kbo,:) could be replaced by ocetra_, but then the former
-   !       would need to be updated by the latter later on (MvH)!
+   ! NOTE: ocetra(:,:,kbo,:) cannot be replaced by ocetra_, because the former
+   !       will not be updated by the latter (MvH)!
    !
    ! CAUTION - the following assumes same indices for ocetra and powtra
    do iv = 1,npowtra        ! check mo_param1_bgc.f90 for consistency

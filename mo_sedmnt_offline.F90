@@ -300,9 +300,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
    ! else wait until the end of the year when we have bottom-water fields
    if (lsed_rclim) then
       lspinup_sediment = .true.
-   elseif (maxyear_ocean<=0) then   ! FIXME: not maxyear (== maxyear_sed)??
-                                    ! ALSO:  if maxyear is argument, why are
-                                    ! maxyear_* accessible?? NEEDED ABOVE
+   elseif (maxyear_sediment<=0) then
       lspinup_sediment = .false.
    else
       lspinup_sediment = mod(nyear,maxyear_ocean)==0 .and. nday_of_year==nday_in_year  &
