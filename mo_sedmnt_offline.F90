@@ -21,7 +21,7 @@ module mo_sedmnt_offline
 !
 ! Description:
 !
-!  Depending on the truth values of lsed_*, this subroutine will
+! Depending on the truth values of lsed_*, this subroutine will
 !     - run the sediment routines, just as hamocc4bcm() does, but by using
 !       a different timestep and different bottom-seawater properties;
 !     - read a bottom-seawater climatology from file (otherwise full HAMOCC
@@ -38,13 +38,15 @@ module mo_sedmnt_offline
 !     accumulated.
 !
 ! - subroutine sedmnt_offline()
-!     Main off-line sediment routine.
-!     If lsed_rclim is set (namelist), it will read_clim(), and then
-!     spin up the sediment by looping sediment_step() over maxyear_sediment.
+!     Main off-line sediment routine.  Typically, after spinning up the
+!     water column, this subprogram should be used to spin up the
+!     sediment.  If lsed_rclim is set (namelist), it will read_clim().
 !     In case no climatology was read, it will first collect monthly
 !     averages of bottom water layer particle fluxes and dissolved
-!     concentrations by running HAMOCC for one year, writing the monthly
-!     averages to file through write_clim().
+!     concentrations by running HAMOCC for at least one year.  Then, if
+!     lsed_wclim is set, it will write the monthly averages to file
+!     through write_clim().  Finally, it will spin up the sediment by
+!     looping sediment_step() over maxyear model years.
 !
 ! - subroutine updcln_onlysed()
 !     Update the calendar based on updcln() from phy/clndr.F, here
@@ -54,8 +56,8 @@ module mo_sedmnt_offline
 !     MICOM's last known date.
 !
 ! - subroutine alloc_mem_sedmnt_offline()
-!     Allocate memory for bottom-water climatology, analogous to mo_sedmnt's
-!     alloc_mem_sedmnt().
+!     Allocate memory for bottom-water climatology, analogous to
+!     mo_sedmnt's alloc_mem_sedmnt().
 !
 ! Refer to the flowchart in the documentation.
 !
@@ -72,18 +74,15 @@ use mo_carbch,      only: ocetra, keqb, co3
 use mo_param1_bgc,  only: nocetra, idet, icalc, iopal, ifdust
 use mo_biomod,      only: kbo, bolay, wpoc, wmin, wmax, wdust        &
    &                    , wlin, wopal, wcal
-use mod_xc  !, only: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp
+use mod_xc
 use mo_common_bgc
 use mo_common_bgcs
-use mo_bgcmean!,      only: nacc_bgc
+use mo_bgcmean
 
 
 implicit none
 
-!#include "common_bgc.h90"
-!#include "common_blocks.h"
 #include "common_clndr.h90"
-!#include "common_bgcs.h90"
 
 public
 
@@ -110,11 +109,15 @@ real, dimension (:,:,:),   allocatable :: bgc_rho_kbo_clim
 real, dimension (:,:),     allocatable :: co3_kbo_avg
 real, dimension (:,:,:),   allocatable :: co3_kbo_clim
 
-! private variables
+! private variables and subprograms
 !
 integer, private :: i,j,iocetra
 character(len = *), parameter, private :: bscfnm = "bottom_seawater_clim.nc"
 integer, private :: nday_of_month ! current day of month
+
+private :: read_clim
+private :: write_clim
+private :: updcln_onlysed
 
 contains
 
@@ -202,7 +205,7 @@ if (nmonth > 12) then
 endif
 
 if ( (calendar(1:3) == 'sta'  .or. calendar(1:3) == 'mix' .or.       &
- &    calendar(1:3) == 'gre').and. nyear <= 1582 ) then
+   &  calendar(1:3) == 'gre').and. nyear <= 1582 ) then
    if (mnproc == 1) then
       write (lp,*)                                                   &
          & 'Do not use mixed Julian/Gregorian calendar before Oct 10th 1582!'
@@ -215,7 +218,9 @@ end subroutine updcln_onlysed
 
 subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
    &                      pglat, pddpo, pdlxp, pdlyp, omask)
-   ! FIXME: bit ugly:
+
+   ! Arrays needed to update two time levels after the sediment spin-up
+   !
    use mo_sedmnt, only: sedlay, powtra, burial
 
    ! Subprogram arguments
@@ -233,7 +238,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
    if (lread_clim) then
       call read_clim()
       lread_clim = .false.
-   elseif ( mod(nyear,maxyear_ocean)==0 ) then !FIXME: or are we anyway at maxyear_ocean?
+   elseif ( mod(nyear,maxyear_ocean)==0 ) then
       ! Accumulate the bottom seawater fields from HAMOCC
       nstep_in_month  = nstep_in_month + 1
       do iocetra = 1, nocetra

@@ -35,25 +35,34 @@ subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,              &
 ! 2001-04   Changes by S. Legutke
 ! 2018-06   Refactored by Marco van Hulten
 !
-!**   Interface to ocean model (parameter list):
-!     -----------------------------------------
+! Interface to ocean model (parameter list):
 !
-!     *INTEGER* *kpie*    - 1st dimension of model grid.
-!     *INTEGER* *kpje*    - 2nd dimension of model grid.
-!     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
-!     *REAL*    *psao*    - salinity [psu].
-!     *REAL*    *prho*    - seawater density [g/cm^3].
-!     *REAL*    *pwo*     - vertical velocity in scalar points [m/s].
-!     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
-!     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
+!  INTEGER  kpie     - 1st dimension of model grid.
+!  INTEGER  kpje     - 2nd dimension of model grid.
+!  INTEGER  kpke     - 3rd (vertical) dimension of model grid.
+!  REAL     pdlxp    - size of scalar grid cell (1st dimension) [m].
+!  REAL     pdlxp    - size of scalar grid cell (1st dimension) [m].
+!  REAL     psao     - salinity [psu].
+!  REAL     prho     - seawater density [g/cm^3].
+!  REAL     bolay    - thickness of the bottom gridbox [m].
+!  REAL     ocetra   - bottom layer ocean tracer ocetra(:,:,kbo,:).
+!  REAL     keqb     - chemical equilibrium constants.
+!  REAL     prorca   - sedimentation of carbon [kmol/m^2/s].
+!  REAL     prcaca   - sedimentation of calcium carbonate [kmol/m^2/s].
+!  REAL     silpro   - sedimentation of biogenic silica [kmol/m^2/s].
+!  REAL     produs   - sedimentation of lithogenic dust [kmol/m^2/s].
+!  REAL     co3      - dissolved carbonate in the bottom gridbox [mol/kg].
 !
-!     Externals
-!     ---------
-!     none.
+! The actual argument names sometimes end with an underscore, signifying
+! that they may be passed in the call as a mutable array, or they may be
+! passed as an object that must not be changed, a true Fortran 90 dummy
+! variable whose mutability is normally restricted with INTENT(IN).
+! We could overload the INTENT, possibly through an optional logical
+! argument in an INTERFACE, but it may be more confusing than helpful.
 !
 !-----------------------------------------------------------------------
 
-use mo_carbch, only: sedfluxo, ocetra ! TODO: should sedfluxo be in bottom water climatology?
+use mo_carbch, only: sedfluxo, ocetra
 use mo_chemcon, only: calcon
 use mo_sedmnt
 #if defined(SED_OFFLINE)
@@ -72,7 +81,6 @@ real, intent(in)     :: psao_(kpie,kpje)
 real, intent(in)     :: prho_(kpie,kpje)
 
 real, intent(in)     :: pdlxp(kpie,kpje), pdlyp(kpie,kpje)
-!real, intent(in)     :: omask(kpie,kpje)
 real, intent(in)     :: bolay_ (kpie,kpje)
 real, intent(inout)  :: ocetra_(kpie,kpje,nocetra)
 real, intent(in)     :: keqb_  (11,kpie,kpje)
@@ -113,25 +121,25 @@ real :: bolven(kpie)
 !$OMP&        ratc13,ratc14,rato13,rato14,poso13,poso14)
 DO 8888 j=1,kpje
 
-do k=1,ks
-   do i=1,kpie
-      solrat(i,k) =0.
-      powcar(i,k) =0.
-      anaerob(i,k)=0.
-      aerob(i,k)  =0.
+do k = 1, ks
+   do i = 1, kpie
+      solrat(i,k) = 0.
+      powcar(i,k) = 0.
+      anaerob(i,k)= 0.
+      aerob(i,k)  = 0.
    enddo
 enddo
 
 
 ! calculate bottom ventilation rate for scaling of sediment-water exchange
-do i=1,kpie
+do i = 1, kpie
    bolven(i) = 1.
 enddo
 
-do k=0,ks
-   do i=1,kpie
-      sedb1(i,k)=0.
-      sediso(i,k)=0.
+do k = 0, ks
+   do i = 1, kpie
+      sedb1(i,k) = 0.
+      sediso(i,k)= 0.
    enddo
 enddo
 
@@ -142,25 +150,25 @@ enddo
 ! Dissolution rate constant of opal (disso) [1/(kmol Si(OH)4/m3)*1/sec]
 
 !disso=1.e-8
-disso=1.e-6 ! test vom 03.03.04 half live sil ca. 20.000 yr
-dissot=disso*dtsed
+disso  = 1.e-6 ! test vom 03.03.04 half live sil ca. 20.000 yr
+dissot = disso*dtsed
 
 ! Silicate saturation concentration is 1 mol/m3
 
-silsat=0.001
+silsat = 0.001
 
 ! Evaluate boundary conditions for sediment-water column exchange.
 ! Current undersaturation of bottom water: sedb(i,0) and
 ! Approximation for new solid sediment, as from sedimentation flux: solrat(i,1)
 
-do i=1,kpie
+do i = 1, kpie
    if(omask(i,j) > 0.5) then
-      undsa=silsat-powtra(i,j,1,ipowasi)
-      sedb1(i,0)=bolay_(i,j)*(silsat-ocetra_(i,j,isilica)) &
-     &          *bolven(i)
-      solrat(i,1)=                                                &
-     &      (sedlay(i,j,1,issssil)+silpro_(i,j)/(porsol(1)*seddw(1)))    &
-     &      *dissot/(1.+dissot*undsa)*porsol(1)/porwat(1)
+      undsa = silsat - powtra(i,j,1,ipowasi)
+      sedb1(i,0) = bolay_(i,j) * (silsat - ocetra_(i,j,isilica))  &
+         &       * bolven(i)
+      solrat(i,1) = ( sedlay(i,j,1,issssil)                       &
+         &        + silpro_(i,j)/(porsol(1)*seddw(1)) )           &
+         &        * dissot/(1.+dissot*undsa) * porsol(1)/porwat(1)
    endif
 enddo
 
@@ -169,13 +177,13 @@ enddo
 ! Current undersaturation in pore water: sedb(i,k) and
 ! Approximation for new solid sediment, as from degradation: solrat(i,k)
 
-do k=1,ks
-   do i=1,kpie
+do k = 1, ks
+   do i = 1, kpie
       if(omask(i,j) > 0.5) then
-         undsa=silsat-powtra(i,j,k,ipowasi)
-         sedb1(i,k)=seddw(k)*porwat(k)*(silsat-powtra(i,j,k,ipowasi))
-         if(k > 1)solrat(i,k)=sedlay(i,j,k,issssil)                 &
-     &                 *dissot/(1.+dissot*undsa)*porsol(k)/porwat(k)
+         undsa = silsat - powtra(i,j,k,ipowasi)
+         sedb1(i,k) = seddw(k)*porwat(k)*(silsat-powtra(i,j,k,ipowasi))
+         if ( k > 1 ) solrat(i,k) = sedlay(i,j,k,issssil)         &
+            &         * dissot/(1.+dissot*undsa) * porsol(k)/porwat(k)
       endif
    enddo
 enddo
@@ -188,18 +196,20 @@ call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,bolay_)
 ! Store the flux for budget.
 ! Add sedimentation to first layer.
 
-do i=1,kpie
+do i = 1, kpie
    if(omask(i,j) > 0.5) then
+      if ( .not. lspinup_sediment ) then
          sedfluxo(i,j,ipowasi) = sedfluxo(i,j,ipowasi) +                   &
             &    (silsat-sediso(i,0) - ocetra_(i,j,isilica))*bolay_(i,j)
 
          ! NOTE: If ocetra_(:,:,:) instead of ocetra(:,:,kbo,:) were to be updated,
          !       the latter would need to be updated by the former later on (MvH)!
          !
-         if (.not. lspinup_sediment) ocetra(i,j,kbo(i,j),isilica) = silsat - sediso(i,0)
-         sedlay(i,j,1,issssil) =                                           &
-            &  sedlay(i,j,1,issssil) + silpro_(i,j) / (porsol(1)*seddw(1)) &
-            &                                       * rdtsed
+         ocetra(i,j,kbo(i,j),isilica) = silsat - sediso(i,0)
+      endif
+      sedlay(i,j,1,issssil) =                                           &
+         &  sedlay(i,j,1,issssil) + silpro_(i,j) / (porsol(1)*seddw(1)) &
+         &                                       * rdtsed
    endif
 enddo
 
@@ -207,12 +217,12 @@ enddo
 ! Calculate new solid sediment.
 ! Update pore water concentration from new undersaturation.
 
-do k=1,ks
-   do i=1,kpie
+do k = 1, ks
+   do i = 1, kpie
       if(omask(i,j) > 0.5) then
          umfa = porsol(k)/porwat(k)
          solrat(i,k) = sedlay(i,j,k,issssil)                        &
-     &               * dissot / (1. + dissot*sediso(i,k))
+            &        * dissot / (1. + dissot*sediso(i,k))
          posol = sediso(i,k)*solrat(i,k)
          sedlay(i,j,k,issssil) = sedlay(i,j,k,issssil) - posol
          powtra(i,j,k,ipowasi) = silsat - sediso(i,k)
@@ -225,8 +235,8 @@ enddo
 
 ! Degradation rate constant of POP (disso) [1/(kmol O2/m3)*1/sec]
 
-disso=0.01/86400.  !  disso=3.e-5 was quite high
-dissot=disso*dtsed
+disso  = 0.01/86400.  !  disso=3.e-5 was quite high
+dissot = disso*dtsed
 
 ! This scheme is not based on undersaturation, but on O2 itself
 
@@ -234,13 +244,13 @@ dissot=disso*dtsed
 ! Current concentration of bottom water: sedb(i,0) and
 ! Approximation for new solid sediment, as from sedimentation flux: solrat(i,1)
 
-do i=1,kpie
+do i = 1, kpie
    if(omask(i,j) > 0.5) then
       undsa = powtra(i,j,1,ipowaox)
       sedb1(i,0) = bolay_(i,j)*ocetra_(i,j,ioxygen)         &
          &       * bolven(i)
       solrat(i,1) = (sedlay(i,j,1,issso12)+prorca_(i,j)/(porsol(1)*seddw(1)))  &
-         &        * ro2ut * dissot / (1.+dissot*undsa) * porsol(1)/porwat(1)
+         &        * ro2ut * dissot/(1.+dissot*undsa) * porsol(1)/porwat(1)
    endif
 enddo
 
@@ -248,13 +258,13 @@ enddo
 ! Current concentration in pore water: sedb(i,k) and
 ! Approximation for new solid sediment, as from degradation: solrat(i,k)
 
-do k=1,ks
-   do i=1,kpie
+do k = 1, ks
+   do i = 1, kpie
       if(bolay_(i,j) > 0.) then
          undsa = powtra(i,j,k,ipowaox)
          sedb1(i,k) = seddw(k)*porwat(k)*powtra(i,j,k,ipowaox)
          if (k > 1) solrat(i,k) = sedlay(i,j,k,issso12)               &
-            &       * ro2ut*dissot/(1.+dissot*undsa)*porsol(k)/porwat(k)
+            &       * ro2ut*dissot/(1.+dissot*undsa) * porsol(k)/porwat(k)
       endif
    enddo
 enddo
@@ -267,18 +277,22 @@ call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,bolay_)
 ! Update water column oxygen, and store the flux for budget (opwflux).
 ! Add sedimentation to first layer.
 
-do i=1,kpie
+do i = 1, kpie
    if(omask(i,j) > 0.5) then
-      if (.not. lspinup_sediment) ocetra(i,j,kbo(i,j),ioxygen) = sediso(i,0)
-      sedlay(i,j,1,issso12)                                     &
-         &      = sedlay(i,j,1,issso12)+prorca_(i,j)/(porsol(1)*seddw(1))
+      if ( .not. lspinup_sediment ) then
+         ocetra(i,j,kbo(i,j),ioxygen) = sediso(i,0)
+      endif
+      sedlay(i,j,1,issso12) = sedlay(i,j,1,issso12)                  &
+         &                  + prorca_(i,j) / (porsol(1)*seddw(1))
 #ifdef __c_isotopes
       sedlay(i,j,1,issso13)                                     &
          &      = sedlay(i,j,1,issso13)+pror13(i,j)/(porsol(1)*seddw(1))
       sedlay(i,j,1,issso14)                                     &
          &      = sedlay(i,j,1,issso14)+pror14(i,j)/(porsol(1)*seddw(1))
 #endif
-      if (.not. lspinup_sediment)   prorca(i,j) = 0.
+      if ( .not. lspinup_sediment ) then
+         prorca(i,j) = 0.
+      endif
 #ifdef __c_isotopes
          pror13(i,j) = 0.
          pror14(i,j) = 0.
@@ -291,8 +305,8 @@ enddo
 ! Calculate new solid sediment.
 ! Update pore water concentration.
 ! Store flux in array aerob, for later computation of DIC and alkalinity.
-do k=1,ks
-   do i=1,kpie
+do k = 1, ks
+   do i = 1, kpie
       if(omask(i,j) > 0.5) then
          umfa = porsol(k)/porwat(k)
          solrat(i,k) = sedlay(i,j,k,issso12) * dissot/(1.+dissot*sediso(i,k))
@@ -325,8 +339,8 @@ enddo
 ! Store flux in array anaerob, for later computation of DIC and alkalinity.
 
 denit = 0.01/86400. *dtsed
-do k=1,ks
-   do i=1,kpie
+do k = 1, ks
+   do i = 1, kpie
       if(omask(i,j) > 0.5) then
          if(powtra(i,j,k,ipowaox) < 1.e-6) then
             posol = denit*MIN(0.5*powtra(i,j,k,ipowno3)/114.,          &
@@ -353,8 +367,8 @@ do k=1,ks
 enddo
 
 !    sulphate reduction in sediments
-do k=1,ks
-   do i=1,kpie
+do k = 1, ks
+   do i = 1, kpie
       if (omask(i,j) > 0.5) then
       if (powtra(i,j,k,ipowaox) < 3.e-6 .and. powtra(i,j,k,ipowno3) < 3.e-6) then
          posol = denit* sedlay(i,j,k,issso12)        ! remineralization of POC
@@ -390,8 +404,8 @@ enddo
 ! from changed alkalinity (nitrate production during remineralisation)
 ! and DIC gain. Iterate 5 times. This changes pH (sedhpl) of sediment.
 
-do k=1,ks
-   do i=1,kpie
+do k = 1, ks
+   do i = 1, kpie
       if(omask(i,j) > 0.5) then
          saln= psao_(i,j)
          rrho= prho_(i,j)
@@ -436,7 +450,7 @@ dissot = disso*dtsed
 ! CO3 saturation concentration is aksp/calcon as in CARCHM
 ! (calcon defined in BELEG_BGC with 1.03e-2; 1/calcon =~ 97.)
 
-do i=1,kpie
+do i = 1, kpie
    if(omask(i,j) > 0.5) then
       satlev = keqb_(11,i,j)/calcon+2.e-5
       undsa = MAX(satlev-powcar(i,1),0.)
@@ -450,14 +464,14 @@ enddo
 ! Current undersaturation in pore water: sedb(i,k) and
 ! Approximation for new solid sediment, as from degradation: solrat(i,k)
 
-do k=1,ks
-   do i=1,kpie
+do k = 1, ks
+   do i = 1, kpie
       if(omask(i,j) > 0.5) then
          undsa=MAX(keqb_(11,i,j)/calcon-powcar(i,k),0.)
          sedb1(i,k) = seddw(k)*porwat(k)*undsa
-         if(k > 1)solrat(i,k) = sedlay(i,j,k,isssc12)                 &
-            &                 * dissot/(1.+dissot*undsa)*porsol(k)/porwat(k)
-         if(undsa <= 0.) solrat(i,k) = 0.
+         if (k > 1) solrat(i,k) = sedlay(i,j,k,isssc12)                 &
+            &                   * dissot/(1.+dissot*undsa) * porsol(k)/porwat(k)
+         if (undsa <= 0.) solrat(i,k) = 0.
       endif
    enddo
 enddo
@@ -469,9 +483,10 @@ call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,bolay_)
 
 ! There is no exchange between water and sediment with respect to co3 so far.
 ! Add sedimentation to first layer.
-do i=1,kpie
+do i = 1, kpie
    if(omask(i,j) > 0.5) then
-      sedlay(i,j,1,isssc12) = sedlay(i,j,1,isssc12)+prcaca_(i,j)/(porsol(1)*seddw(1)) &
+      sedlay(i,j,1,isssc12) = sedlay(i,j,1,isssc12)                  &
+         &                  + prcaca_(i,j) / (porsol(1)*seddw(1))    &
          &                  * rdtsed
 #ifdef __c_isotopes
       sedlay(i,j,1,isssc13) = sedlay(i,j,1,isssc13)+prca13(i,j)/(porsol(1)*seddw(1))
@@ -491,8 +506,8 @@ enddo
 ! Instead, only update DIC, and, of course, alkalinity.
 ! This also includes gains from aerobic and anaerobic decomposition.
 
-do k=1,ks
-   do i=1,kpie
+do k = 1, ks
+   do i = 1, kpie
       if(omask(i,j) > 0.5) then
          umfa = porsol(k)/porwat(k)
          solrat(i,k) = sedlay(i,j,k,isssc12)                           &
@@ -528,8 +543,8 @@ call dipowa(kpie,kpje,kpke,pdlxp,pdlyp,omask,                        &
 !ik f(POC) [kg C] / f(total) [kg] = 0.05
 !ik thus it is
 !$OMP PARALLEL DO
-do j=1,kpje
-   do i=1,kpie
+do j = 1, kpje
+   do i = 1, kpie
       sedlay(i,j,1,issster) = sedlay(i,j,1,issster)                 &
          &                  + produs_(i,j) / (porsol(1)*seddw(1))   &
          &                  * rdtsed
@@ -537,10 +552,10 @@ do j=1,kpje
 enddo
 !$OMP END PARALLEL DO
 
-if (lspinup_sediment) then
+if ( .not. lspinup_sediment ) then
 !$OMP PARALLEL DO
-do j=1,kpje
-   do i=1,kpie
+do j = 1, kpje
+   do i = 1, kpie
       silpro_(i,j) = 0.
       prorca_(i,j) = 0.
 #ifdef __c_isotopes

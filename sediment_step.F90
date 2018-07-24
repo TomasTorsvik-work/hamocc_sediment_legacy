@@ -18,11 +18,9 @@ subroutine sediment_step(kpie, kpje, kpke, pglat, pddpo, pdlxp, pdlyp,  &
 !
 ! Method:
 !
-! After spinning up the water column, this module takes over to spin up
-! the sediment.  During the water column spin-up, the model collects
-! monthly averages of bottom water layer particle fluxes and dissolved
-! concentrations.  Those monthly averages are used by this module as a
-! forcing for the sediment model.
+! Set the sediment timestep, depending if we are in an off-line sediment
+! spin-up or full MICOM/HAMOCC.  Then execute the sediment routines
+! powach(), sedshi(), accsdm() and accbur().
 !
 ! History:
 !
