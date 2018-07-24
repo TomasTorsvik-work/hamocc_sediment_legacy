@@ -311,7 +311,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
       if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
          &     'sedmnt_offline(): sediment spin-up starting'
 
-      ! set up sediment layers (mainly for much higher diffusion rate)
+      ! set up sediment layers (much higher diffusion rate; correct timestep)
       call bodensed(kpie,kpje,kpke,pddpo)
 
       ! save calendar variables
@@ -372,6 +372,9 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
          &     'sedmnt_offline(): sediment spin-up ended'
       endif
       lspinup_sediment = .false.
+
+      ! set up sediment layers for normal MICOM/HAMOCC use
+      call bodensed(kpie,kpje,kpke,pddpo)
    endif ! spin-up
 end subroutine sedmnt_offline
 
