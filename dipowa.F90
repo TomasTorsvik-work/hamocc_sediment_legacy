@@ -75,8 +75,8 @@ real :: bolven(kpie)                ! bottom layer ventilation rate
 zcoefsu(0) = 0.0
 do k = 1,ks
    ! diffusion coefficient * 1/dz     * fraction of pore water at half depths
-   zcoefsu(k  ) = -sedict * seddzi(k) * porwah(k) * rdtsed
-   zcoeflo(k-1) = -sedict * seddzi(k) * porwah(k) * rdtsed   ! why the same ?
+   zcoefsu(k  ) = -sedict * seddzi(k) * porwah(k)
+   zcoeflo(k-1) = -sedict * seddzi(k) * porwah(k)  ! why the same ?
 enddo
 zcoeflo(ks) = 0.0             ! diffusion coefficient for bottom sediment layer
 

@@ -288,7 +288,8 @@ do i = 1, kpie
          ocetra(i,j,kbo(i,j),ioxygen) = sediso(i,0)
       endif
       sedlay(i,j,1,issso12) = sedlay(i,j,1,issso12)                  &
-         &                  + prorca_(i,j) / (porsol(1)*seddw(1))
+         &                  + prorca_(i,j) / (porsol(1)*seddw(1))    &
+         &                  * rdtsed
 #ifdef __c_isotopes
       sedlay(i,j,1,issso13)                                     &
          &      = sedlay(i,j,1,issso13)+pror13(i,j)/(porsol(1)*seddw(1))

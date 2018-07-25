@@ -17,18 +17,18 @@
 !     -------
 !     - declaration and memory allocation
 !
-!     *sedlay*         *REAL*  - .
+!     *sedlay*         *REAL*  - solid tracers.
 !     *sedla1*         *REAL*  - .
 !     *sedtot*         *REAL*  - .
 !     *sedtoa*         *REAL*  - .
 !     *seffel*         *REAL*  - .
-!     *sedhpl*         *REAL*  - .
-!     *powtra*         *REAL*  - .
+!     *sedhpl*         *REAL*  - pH.
+!     *powtra*         *REAL*  - dissolved tracers.
 !     *prorca*         *REAL*  - .
 !     *prcaca*         *REAL*  - .
 !     *silpro*         *REAL*  - .
-!     *porwat*         *REAL*  - .
-!     *porsol*         *REAL*  - .
+!     *porwat*         *REAL*  - dissolved fraction.
+!     *porsol*         *REAL*  - solid fraction.
 !     *seddzi*         *REAL*  - .
 !     *dzs*            *REAL*  - .
 !     *porwah*         *REAL*  - .
