@@ -46,7 +46,6 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
    integer,          intent(in)  :: kplyear,kplmon,kplday,kpldtoce
    character(len=*), intent(in)  :: rstfnm
 
-#if defined(SED_OFFLINE)
 ! Local variables
 !
    integer           :: ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)      &
@@ -219,7 +218,6 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
    ENDIF
 
    RETURN
-#endif
 
 end subroutine aufr_bgc_onlysed
 #endif

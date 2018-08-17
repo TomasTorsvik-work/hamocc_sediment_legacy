@@ -426,7 +426,7 @@
 
       DO l=1,nbgc 
         nacc_bgc(l)=nacc_bgc(l)+1
-        if (bgcwrt(l).gt.0.5) then
+        if ( bgcwrt(l) ) then
           if (GLB_INVENTORY(l).ne.0)                                    & 
      &      CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
           call ncwrt_bgc(l)

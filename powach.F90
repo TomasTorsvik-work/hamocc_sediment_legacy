@@ -76,6 +76,7 @@ use mo_sedmnt_offline
 use mo_biomod
 use mo_control_bgc
 use mo_param1_bgc
+use mo_common_bgc, only: omask
 
 implicit none
 

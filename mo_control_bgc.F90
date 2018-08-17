@@ -59,8 +59,8 @@
       LOGICAL :: lread_clim       !  whether reading the climatology now.
       LOGICAL :: lwrite_clim      !  whether writing the climatology now.
 #endif
-      INTEGER :: imonth, iyear    !  counters that must be available to ncwrt_bgc().
       LOGICAL :: lspinup_sediment !  whether spinning up the sediment now.
+      INTEGER :: imonth, iyear    !  counters that must be available to ncwrt_bgc().
       INTEGER :: nyear_global     !  ocean model year number, including sediment().
       LOGICAL :: is_end_of_day    !  whether we are at the last timestep of the day.
 

@@ -86,7 +86,6 @@
 #ifdef SED_OFFLINE
       namelist /bgcnml/ atm_co2, maxyear_sediment, maxyear_ocean,    &
          &              lsed_rclim, lsed_wclim, lsed_spinup
-      if (lsed_rclim) lread_clim = .true.
 #else
       namelist /bgcnml/ atm_co2
 #endif
@@ -116,6 +115,9 @@
         write(io_stdo_bgc,*) 'HAMOCC: lsed_spinup =',lsed_spinup
 #endif
       ENDIF
+#ifdef SED_OFFLINE
+      if (lsed_rclim) lread_clim = .true.
+#endif
       atm_o2  = 196800.
       atm_n2  = 802000.
 #ifdef natDIC

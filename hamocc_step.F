@@ -26,15 +26,21 @@ c
       call micom2hamocc(m,n,mm,nn)
 c
       do l=1,nbgc
-        bgcwrt(l)=0.
+        bgcwrt(l) = .false.
         if (((diagann_bgc(l).and.nday_of_year.eq.1.or.diagmon_bgc(l)
      .    .and.nday.eq.1).and.mod(nstep,nstep_in_day).eq.0).or..not.
      .    (diagann_bgc(l).or.diagmon_bgc(l)).and.
      .    mod(nstep+.5,diagfq_bgc(l)).lt.1.)
-     .    bgcwrt(l)=1.
+     .    bgcwrt(l) = .true.
       enddo
 c
 c --- Apparently, nstep=0 (mod 18) at the start of a day!
+c
+c --- FIXME: not first step of next day, i.e. wait until after last hamocc4bcm()?
+c --- FIXME: Potential issue is that MICOM is run herefore (going one ts too far)
+c
+c --- FIXME: esp. in case of accumulation, last timestep MICOM/HAMOCC not included?
+c
       is_end_of_day = mod(nstep+1,nstep_in_day)==0
       if ( nday_of_year==nday_in_year .and. is_end_of_day ) then
          nyear_global = nyear_global + 1

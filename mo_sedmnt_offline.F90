@@ -40,7 +40,8 @@ module mo_sedmnt_offline
 ! - subroutine sedmnt_offline()
 !     Main off-line sediment routine.  Typically, after spinning up the
 !     water column, this subprogram should be used to spin up the
-!     sediment.  If lsed_rclim is set (namelist), it will read_clim().
+!     sediment.  If lsed_rclim is set (namelist), lread_clim will be set
+!     and it will read_clim().  This is only done one time.
 !     In case no climatology was read, it will first collect monthly
 !     averages of bottom water layer particle fluxes and dissolved
 !     concentrations by running HAMOCC for at least one year.  Then, if
@@ -59,7 +60,7 @@ module mo_sedmnt_offline
 !     Allocate memory for bottom-water climatology, analogous to
 !     mo_sedmnt's alloc_mem_sedmnt().
 !
-! Refer to the flowchart in the documentation.
+! Refer to the flowchart (version 1.1) in the documentation.
 !
 ! History:
 !
@@ -153,30 +154,6 @@ subroutine read_clim()
 end subroutine read_clim
 
 subroutine write_clim()
-   ! Write tracer monthly averages to netCDF file
-   call aufw_bgc_onlysed(idm,jdm,kdm,nyear,nmonth,nday,nstep,bscfnm)
-   ocetra_kbo_clim(:,:,:,nmonth) = ocetra_kbo_avg
-   bolay_clim(:,:,nmonth) = bolay_avg
-   keqb_clim(:,:,:,nmonth) = keqb_avg
-   prorca_clim(:,:,nmonth) = prorca_avg
-   prcaca_clim(:,:,nmonth) = prcaca_avg
-   silpro_clim(:,:,nmonth) = silpro_avg
-   produs_clim(:,:,nmonth) = produs_avg
-   bgc_t_kbo_clim(:,:,nmonth) = bgc_t_kbo_avg
-   bgc_s_kbo_clim(:,:,nmonth) = bgc_s_kbo_avg
-   bgc_rho_kbo_clim(:,:,nmonth) = bgc_rho_kbo_avg
-   co3_kbo_clim(:,:,nmonth) = co3_kbo_avg
-   ocetra_kbo_avg = 0.0
-   bolay_avg = 4000.0
-   keqb_avg  = 0.0
-   prorca_avg = 0.0
-   prcaca_avg = 0.0
-   silpro_avg = 0.0
-   produs_avg = 0.0
-   bgc_t_kbo_avg = 0.0
-   bgc_s_kbo_avg = 0.0
-   bgc_rho_kbo_avg = 0.0
-   co3_kbo_avg = 0.0
 end subroutine write_clim
 
 subroutine updcln_onlysed()
@@ -232,12 +209,16 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
    real, dimension(kpie,kpje), intent(in)       :: pdlxp, pdlyp
    real, dimension(kpie,kpje), intent(in)       :: omask
 
-   integer  :: nday_save, nmonth_save   ! calendar variables outside sediment()
+   integer  :: nday_save, nmonth_save   ! calendar variables outside sedmnt_offline()
    integer  :: nyear_save, nday_of_year_save, nd_in_m_2, nday_in_year_save
 
+   ! Read the bottom water climatology, or accumulate bottom water tracers when in
+   ! the last year of MICOM/HAMOCC simulation
+   !
    if (lread_clim) then
-      call read_clim()
-      lread_clim = .false.
+      call read_clim()           ! Read the bottom water climatology,
+      lread_clim = .false.       !  but only one time.
+      lspinup_sediment = .true.  ! As we have the climatology, immediately start the spin-up.
    elseif ( mod(nyear,maxyear_ocean)==0 ) then
       ! Accumulate the bottom seawater fields from HAMOCC
       nstep_in_month  = nstep_in_month + 1
@@ -288,24 +269,46 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
             enddo
          enddo
          nstep_in_month = 0
-         if (lsed_wclim) call write_clim()
+
+         ! Write tracer monthly averages to netCDF file
+         if (lsed_wclim) call aufw_bgc_onlysed(idm,jdm,kdm,nyear,nmonth,nday,nstep,bscfnm)
+         ! TODO: rename aufw_bgc_onlysed() -> write_clim() ?
+
+         ! Save averages in climatology matrix
+         ocetra_kbo_clim(:,:,:,nmonth) = ocetra_kbo_avg
+         bolay_clim(:,:,nmonth) = bolay_avg
+         keqb_clim(:,:,:,nmonth) = keqb_avg
+         prorca_clim(:,:,nmonth) = prorca_avg
+         prcaca_clim(:,:,nmonth) = prcaca_avg
+         silpro_clim(:,:,nmonth) = silpro_avg
+         produs_clim(:,:,nmonth) = produs_avg
+         bgc_t_kbo_clim(:,:,nmonth) = bgc_t_kbo_avg
+         bgc_s_kbo_clim(:,:,nmonth) = bgc_s_kbo_avg
+         bgc_rho_kbo_clim(:,:,nmonth) = bgc_rho_kbo_avg
+         co3_kbo_clim(:,:,nmonth) = co3_kbo_avg
+         ocetra_kbo_avg = 0.0
+         bolay_avg = 4000.0
+         keqb_avg  = 0.0
+         prorca_avg = 0.0
+         prcaca_avg = 0.0
+         silpro_avg = 0.0
+         produs_avg = 0.0
+         bgc_t_kbo_avg = 0.0
+         bgc_s_kbo_avg = 0.0
+         bgc_rho_kbo_avg = 0.0
+         co3_kbo_avg = 0.0
       endif ! end of month routines
-   endif ! (if .not. lsed_rclim)
+   endif
 
    if (lsed_spinup) then
    ! The time loop over the sediment routines is done as soon as the needed bottom
    ! water variables are available
 
-   ! start immediately with sediment() if bottom water climatology is read,
-   ! else wait until the end of the year when we have bottom-water fields
-   if (lsed_rclim) then
-      lspinup_sediment = .true.
-   elseif (maxyear_sediment<=0) then
-      lspinup_sediment = .false.
-   else
-      lspinup_sediment = mod(nyear,maxyear_ocean)==0 .and. nday_of_year==nday_in_year  &
-         &      .and. is_end_of_day
-   endif
+   ! start immediately with the sediment routines if bottom water climatology is read,
+   ! else wait until the end of a MICOM/HAMOCC period when we have bottom-water fields
+   lspinup_sediment = ( mod(nyear,maxyear_ocean)==0 .and. nday_of_year==nday_in_year  &
+      &      .and. is_end_of_day .and. maxyear_sediment>0 ) .or. lspinup_sediment
+   ! FIXME: not first step of next day, i.e. wait until after last hamocc4bcm()?
 
    if ( lspinup_sediment ) then
       if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
@@ -336,7 +339,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
                & co3_kbo_clim(:,:,imonth))
             ! write monthly outputs (assuming first index is mo)
             if (maxyear <= 20) then
-               nacc_bgc(1) = 1
+               nacc_bgc(1) = 1 ! mo (#timesteps)
                if (GLB_INVENTORY(1).ne.0)                                        &
                   &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
                call ncwrt_bgc(1) ! ncout_hamocc.F
@@ -344,7 +347,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
             endif
          enddo
          ! write yearly outputs (assuming second index is yr)
-         nacc_bgc(2) = 12
+         nacc_bgc(2) = 12 ! mo (#timesteps)
          if (GLB_INVENTORY(2).ne.0)                                        &
             &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
          imonth = 0 ! triggers writing of yearly averages
@@ -370,12 +373,12 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
 
       if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
          &     'sedmnt_offline(): sediment spin-up ended'
-      endif
       lspinup_sediment = .false.
 
       ! set up sediment layers for normal MICOM/HAMOCC use
       call bodensed(kpie,kpje,kpke,pddpo)
-   endif ! spin-up
+   endif ! spin-up (lspinup_sediment)
+   endif ! spin-up (lsed_spinup)
 end subroutine sedmnt_offline
 
 subroutine alloc_mem_sedmnt_offline(kpie, kpje)
