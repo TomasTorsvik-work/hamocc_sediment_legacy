@@ -37,11 +37,11 @@ use mo_bgcmean
 use mo_control_bgc!, only: io_stdo_bgc
 use mo_param1_bgc
 use mo_sedmnt
+use mo_common_bgcs
 
 implicit none
 
 #include "common_clndr.h90"   ! F90 - MvH
-#include "common_bgcs.h90"    ! F90 - MvH
 
 ! Function arguments; see hamocc4bcm.F90 for variable description
 !
@@ -73,7 +73,7 @@ else
    rdtsed = 1.
 endif
 
-call powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,                    &
+call powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,              &
    &        bolay_,ocetra_,keqb_,prorca_,prcaca_,silpro_,produs_,co3_)
 
 #ifdef PBGC_CK_TIMESTEP

@@ -1,4 +1,4 @@
-subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,              &
+subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,        &
    &       bolay_,ocetra_,keqb_,prorca_,prcaca_,silpro_,produs_,co3_)
 
 !-----------------------------------------------------------------------
@@ -70,13 +70,9 @@ subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,              &
 use mo_carbch, only: sedfluxo, ocetra
 use mo_chemcon, only: calcon
 use mo_sedmnt
-#if defined(SED_OFFLINE)
-use mo_sedmnt_offline
-#endif
 use mo_biomod
 use mo_control_bgc
 use mo_param1_bgc
-use mo_common_bgc, only: omask
 
 implicit none
 
@@ -95,6 +91,7 @@ real, intent(inout)  :: prcaca_(kpie,kpje)
 real, intent(inout)  :: silpro_(kpie,kpje)
 real, intent(inout)  :: produs_(kpie,kpje)
 real, intent(in)     :: co3_   (kpie,kpje)
+real, intent(in)     :: omask  (kpie,kpje)
 
 real :: sedb1(kpie,0:ks), sediso(kpie,0:ks)
 real :: solrat(kpie,ks), powcar(kpie,ks)
@@ -197,7 +194,7 @@ enddo
 ! Solve for new undersaturation sediso, from current undersaturation sedb1,
 ! and first guess of new solid sediment solrat.
 
-call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,bolay_)
+call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
 
 ! Store the flux for budget.
 ! Add sedimentation to first layer.
@@ -278,7 +275,7 @@ enddo
 ! Solve for new O2 concentration sediso, from current concentration sedb1,
 ! and first guess of new solid sediment solrat.
 
-call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,bolay_)
+call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
 
 ! Update water column oxygen, and store the flux for budget (opwflux).
 ! Add sedimentation to first layer.
@@ -486,7 +483,7 @@ enddo
 ! Solve for new undersaturation sediso, from current undersaturation sedb1,
 ! and first guess of new solid sediment solrat.
 
-call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,bolay_)
+call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
 
 ! There is no exchange between water and sediment with respect to co3 so far.
 ! Add sedimentation to first layer.

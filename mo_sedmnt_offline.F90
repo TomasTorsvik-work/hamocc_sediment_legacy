@@ -332,6 +332,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
             call updcln_onlysed() ! do a monthly calendar update only for sediment_step()
             call sediment_step(idm,jdm,kdm,pglat, bgc_dp,bgc_dx,bgc_dy,    &
                & bgc_s_kbo_clim(:,:,imonth), bgc_rho_kbo_clim(:,:,imonth), &
+               & omask,                                                    &
                & ocetra_kbo_clim(:,:,imonth,:), bolay_clim(:,:,imonth),    &
                & keqb_clim(:,:,:,imonth),                                  &
                & prorca_clim(:,:,imonth), prcaca_clim(:,:,imonth),         &
@@ -354,14 +355,6 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
          call ncwrt_bgc(2) ! ncout_hamocc.F
          nacc_bgc(2) = 0
       enddo
-
-      ! update both time levels before returning to full model (leapfrog scheme)
-      sedlay2(:,:,1:ks,:)      = sedlay(:,:,:,:)
-      sedlay2(:,:,ks+1:2*ks,:) = sedlay(:,:,:,:)
-      powtra2(:,:,1:ks,:)      = powtra(:,:,:,:)
-      powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:)
-      burial2(:,:,1,:)         = burial(:,:,:)
-      burial2(:,:,2,:)         = burial(:,:,:)
 
       ! set calendar variables back to original values
       nday         = nday_save
