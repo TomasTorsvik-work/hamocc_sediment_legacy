@@ -356,6 +356,13 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
          nacc_bgc(2) = 0
       enddo
 
+      if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
+         &     'sedmnt_offline(): sediment spin-up ended'
+      lspinup_sediment = .false.
+
+      ! set up sediment layers for normal MICOM/HAMOCC use
+      call bodensed(kpie,kpje,kpke,pddpo)
+
       ! set calendar variables back to original values
       nday         = nday_save
       nmonth       = nmonth_save
@@ -364,12 +371,13 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
       nd_in_m(2)   = nd_in_m_2
       nday_in_year = nday_in_year_save
 
-      if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
-         &     'sedmnt_offline(): sediment spin-up ended'
-      lspinup_sediment = .false.
-
-      ! set up sediment layers for normal MICOM/HAMOCC use
-      call bodensed(kpie,kpje,kpke,pddpo)
+      ! update time levels, such that no old time levels will be used later
+      sedlay2(:,:,1:ks,:)      = sedlay(:,:,:,:)
+      sedlay2(:,:,ks+1:2*ks,:) = sedlay(:,:,:,:)
+      powtra2(:,:,1:ks,:)      = powtra(:,:,:,:)
+      powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:)
+      burial2(:,:,1,:)         = burial(:,:,:)
+      burial2(:,:,2,:)         = burial(:,:,:)
    endif ! spin-up (lspinup_sediment)
    endif ! spin-up (lsed_spinup)
 end subroutine sedmnt_offline
