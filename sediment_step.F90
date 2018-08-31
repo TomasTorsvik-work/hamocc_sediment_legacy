@@ -37,11 +37,12 @@ use mo_bgcmean
 use mo_control_bgc!, only: io_stdo_bgc
 use mo_param1_bgc
 use mo_sedmnt
-use mo_common_bgcs
+!use mo_common_bgcs
 
 implicit none
 
 #include "common_clndr.h90"   ! F90 - MvH
+#include "common_bgcs.h90"
 
 ! Function arguments; see hamocc4bcm.F90 for variable description
 !

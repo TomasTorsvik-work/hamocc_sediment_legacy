@@ -72,18 +72,19 @@ module mo_sedmnt_offline
 
 use mo_control_bgc
 use mo_carbch,      only: ocetra, keqb, co3
-use mo_param1_bgc,  only: nocetra, idet, icalc, iopal, ifdust
+use mo_param1_bgc,  only: nocetra, idet, icalc, iopal, ifdust        &
+   &                    , nsedtra, npowtra
 use mo_biomod,      only: kbo, bolay, wpoc, wmin, wmax, wdust        &
    &                    , wlin, wopal, wcal
 use mod_xc
 use mo_common_bgc
-use mo_common_bgcs
 use mo_bgcmean
 
 
 implicit none
 
 #include "common_clndr.h90"
+#include "common_bgcs.h90"
 
 public
 
