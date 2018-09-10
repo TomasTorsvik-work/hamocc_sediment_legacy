@@ -73,10 +73,9 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
 !
    IF(mnproc==1 .AND. IOTYPE==0) THEN
 
-      write(io_stdo_bgc,*) 'Read month ', kplmon,     &
-              &            ' of bottom seawater climatology from ', rstfnm
+      write(io_stdo_bgc,*) 'Read month ', kplmon, ' from ', rstfnm
       ncstat = nf90_open(rstfnm, nf90_nowrite, ncid)
-      IF ( ncstat .NE. NF90_NOERR ) THEN
+      IF ( ncstat /= NF90_NOERR ) THEN
         call xchalt('aufr_bgc_onlysed(): Problem with opening climatology')
                stop 'aufr_bgc_onlysed(): Problem with opening climatology'
       ENDIF
@@ -94,13 +93,13 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
       call mpi_info_set(info,"striping_unit",stripestr2,ierr)
       ncstat = NFMPI_OPEN(mpicomm,rstfnm,NF_NOWRITE,   &
                    &    info, ncid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      IF ( ncstat /= NF_NOERR ) THEN
         call xchalt('aufr_bgc_onlysed(): Problem with opening climatology')
                stop 'aufr_bgc_onlysed(): Problem with opening climatology'
       ENDIF
 #endif
 
-      IF ( ncstat .NE. NF90_NOERR ) THEN
+      IF ( ncstat /= NF90_NOERR ) THEN
         call xchalt('(AUFW: Problem with netCDF2)')
                stop '(AUFW: Problem with netCDF2)'
       ENDIF
@@ -198,7 +197,7 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
    IF(mnproc==1 .AND. IOTYPE==0) THEN
       IF(mnproc==1) THEN
         ncstat = NF90_CLOSE(ncid)
-        IF ( ncstat .NE. NF90_NOERR ) THEN
+        IF ( ncstat /= NF90_NOERR ) THEN
           call xchalt('(AUFW: netCDF200)')
                  stop '(AUFW: netCDF200)'
         ENDIF
@@ -206,15 +205,11 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
    ELSE IF(IOTYPE==1) THEN
 #ifdef PNETCDF
       ncstat = NFMPI_CLOSE(ncid)
-      IF ( ncstat .NE. NF_NOERR ) THEN
+      IF ( ncstat /= NF_NOERR ) THEN
         call xchalt('(AUFW: PnetCDF200)')
                stop '(AUFW: PnetCDF200)'
       ENDIF
 #endif
-   ENDIF
-   IF (mnproc.eq.1) THEN
-      WRITE(io_stdo_bgc,*) 'End of AUFR_BGC'
-      WRITE(io_stdo_bgc,*) '***************'
    ENDIF
 
    RETURN
