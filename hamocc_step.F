@@ -34,22 +34,10 @@ c
      .    bgcwrt(l) = .true.
       enddo
 c
-c --- Apparently, nstep=0 (mod 18) at the start of a day!
-c
-c --- FIXME: not first step of next day, i.e. wait until after last hamocc4bcm()?
-c --- FIXME: Potential issue is that MICOM is run herefore (going one ts too far)
-c
-c --- FIXME: esp. in case of accumulation, last timestep MICOM/HAMOCC not included?
-c
-      is_end_of_day = mod(nstep+1,nstep_in_day)==0
-      if ( nday_of_year==nday_in_year .and. is_end_of_day ) then
-         nyear_global = nyear_global + 1
-         IF (mnproc.eq.1) WRITE(io_stdo_bgc,*)
-     .            'hamocc_step(): nyear_global = ', nyear_global
-      endif
-c
+      is_end_of_day = mod(nstep,nstep_in_day)==0
+      is_start_of_day = mod(nstep-1,nstep_in_day)==0
 #ifdef SED_OFFLINE
-      call sedmnt_offline(idm, jdm, kdm, maxyear_sediment,
+      call sedmnt_offline(idm, jdm, kdm, maxyear_sediment, nstep,
      .                    pglat, bgc_dp, bgc_dx, bgc_dy, omask)
 #endif
 c
@@ -59,6 +47,12 @@ c
      .            nyear,nmonth,nday,nd_in_m(nmonth),ldtmonth,ldtday,
      .            omask,nday_in_year,bgc_flxdms)
 
+      if ( nday_of_year==nday_in_year .and. is_end_of_day ) then
+         nyear_global = nyear_global + 1
+         IF (mnproc.eq.1) WRITE(io_stdo_bgc,*)
+     .            'hamocc_step(): nyear_global = ', nyear_global
+      endif
+c
       call hamocc2micom(m,n,mm,nn)
 c
       return

@@ -6,8 +6,8 @@ c --- -------------------------------------------
 c
       use mod_xc
       use mod_dia, only : diafnm,sigmar1,iotype
-      use mo_control_bgc, only : dtbgc
-     .                         , lspinup_sediment, imonth, iyear
+      use mo_control_bgc, only : dtbgc, io_stdo_bgc, nyear_global
+     .                         , lspinup_sediment, imonth, iyear, iburst
       use mo_biomod, only: k0100,k0500,k1000,k2000,k4000
       use mo_bgcmean
 c      
@@ -20,6 +20,7 @@ c
 c
       integer i,j,k,l,nt
       integer nhour,ny,nm,nd,dayfrac,irec(nbgcmax),cmpflg
+      character(len= 2) seqstring
       character(len=80) fname(nbgcmax)
       character(len=20) startdate
       character(len=30) timeunits
@@ -41,11 +42,12 @@ c
 c --- get file name
       if ( lspinup_sediment ) then
          if (.not.append2file(iogrp)) then
+            write (seqstring,'(I0.2)') iburst
             if ( imonth == 0 ) then
-               call diafnm(runid,runid_len,expcnf,"hsedy", ! mod_dia.F
+               call diafnm(runid,runid_len,expcnf,"hsedy."//seqstring, ! mod_dia.F
      .                     nstep,filefq_bgc(iogrp)/real(nstep_in_day),.false.,.true.,fname(iogrp))
             else
-               call diafnm(runid, runid_len, expcnf, "hsedm",
+               call diafnm(runid, runid_len, expcnf, "hsedm."//seqstring,
      .                     nstep,filefq_bgc(iogrp)/real(nstep_in_day),.true.,.false.,fname(iogrp))
             endif
             append2file(iogrp)=.true.
@@ -73,8 +75,8 @@ c --- get file name
 c
 c --- prepare output fields 
       if (mnproc.eq.1) then 
-        write (lp,'(a,f6.2,a)') ' ncwrt_bgc: fields averaged over ',
-     .                          real(nacc_bgc(iogrp)),' steps'
+        write (lp,'(a,i6,a)') ' ncwrt_bgc: fields averaged over ',
+     .                          nacc_bgc(iogrp),' steps'
         write(lp,*) 'irec(iogrp)',irec(iogrp)
       endif
       rnacc=1./real(nacc_bgc(iogrp))
