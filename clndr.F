@@ -105,7 +105,7 @@ c
 c
       integer nstep
 c
-      if (mod(nstep,nstep_in_day).eq.0) then
+      if (mod(nstep-1,nstep_in_day).eq.0) then
 c
 c --- - get new date
         nday=nday+1

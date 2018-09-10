@@ -114,7 +114,9 @@ real, dimension (:,:,:),   allocatable :: co3_kbo_clim
 ! private variables and subprograms
 !
 integer, private :: i,j,iocetra
-character(len = *), parameter, private :: bscfnm = "bottom_seawater_clim.nc"
+character(len = *), parameter, private :: bscfnmbase = "bottom_seawater_clim"
+character(len =30),            private :: bscfnm
+character(len = 4),            private :: seqstring
 integer, private :: nday_of_month ! current day of month
 
 private :: read_clim
@@ -123,11 +125,15 @@ private :: updcln_onlysed
 
 contains
 
-subroutine read_clim()
+subroutine read_clim(nstep)
+   integer, intent(in)                          :: nstep
+
    ! Read the bottom seawater climatology from the netCDF forcing file
-   if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
+   if (mnproc == 1) write(io_stdo_bgc,*)                             &
       &        'hamocc_step(): starting bottom seawater climatology read loop'
    do imonth = 1,12
+      write (seqstring,'(I0.4)') nyear
+      bscfnm = bscfnmbase//"."//seqstring//".nc"
       call aufr_bgc_onlysed(idm,jdm,kdm,nyear,imonth,nday,nstep,bscfnm)
       ocetra_kbo_clim(:,:,:,imonth) = ocetra_kbo_avg
       bolay_clim(:,:,imonth) = bolay_avg
@@ -194,7 +200,7 @@ endif
 return
 end subroutine updcln_onlysed
 
-subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
+subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
    &                      pglat, pddpo, pdlxp, pdlyp, omask)
 
    ! Arrays needed to update two time levels after the sediment spin-up
@@ -205,6 +211,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
    !
    integer, intent(in)                          :: kpie,kpje,kpke
    integer, intent(in)                          :: maxyear
+   integer, intent(in)                          :: nstep
    real, dimension(kpie,kpje), intent(in)       :: pglat
    real, dimension(kpie,kpje,kpke), intent(in)  :: pddpo
    real, dimension(kpie,kpje), intent(in)       :: pdlxp, pdlyp
@@ -217,7 +224,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
    ! the last year of MICOM/HAMOCC simulation
    !
    if (lread_clim) then
-      call read_clim()           ! Read the bottom water climatology,
+      call read_clim(nstep)      ! Read the bottom water climatology,
       lread_clim = .false.       !  but only one time.
       lspinup_sediment = .true.  ! As we have the climatology, immediately start the spin-up.
    elseif ( mod(nyear,maxyear_ocean)==0 ) then
@@ -249,10 +256,11 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
          nday_of_month = nday_of_month - nd_in_m(i)
       enddo
 
-      if ( nday_of_month==nd_in_m(nmonth) .and. is_end_of_day ) then
+      if ( nday_of_month==1 .and. is_start_of_day ) then
          ! Calculate tracer monthly average
-         if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
-            &  'hamocc_step(): end of month, set tracer avg for last month'
+         if (mnproc == 1) write(io_stdo_bgc,*)                             &
+            !&  'hamocc_step(): end of month, set tracer avg for last month'
+            &  'hamocc_step(): start of next month, set tracer avg for last month'
          ocetra_kbo_avg = ocetra_kbo_avg / nstep_in_month
          !bolay_avg = bolay_avg / nstep_in_month
          keqb_avg = keqb_avg / nstep_in_month
@@ -272,8 +280,12 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
          nstep_in_month = 0
 
          ! Write tracer monthly averages to netCDF file
-         if (lsed_wclim) call aufw_bgc_onlysed(idm,jdm,kdm,nyear,nmonth,nday,nstep,bscfnm)
-         ! TODO: rename aufw_bgc_onlysed() -> write_clim() ?
+         if (lsed_wclim) then
+            write (seqstring,'(I0.4)') nyear
+            bscfnm = bscfnmbase//"."//seqstring//".nc"
+            call aufw_bgc_onlysed(idm,jdm,kdm,nyear,nmonth,nday,nstep,bscfnm)
+            ! TODO: rename aufw_bgc_onlysed() -> write_clim() ?
+         endif
 
          ! Save averages in climatology matrix
          ocetra_kbo_clim(:,:,:,nmonth) = ocetra_kbo_avg
@@ -307,13 +319,15 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
 
    ! start immediately with the sediment routines if bottom water climatology is read,
    ! else wait until the end of a MICOM/HAMOCC period when we have bottom-water fields
-   lspinup_sediment = ( mod(nyear,maxyear_ocean)==0 .and. nday_of_year==nday_in_year  &
-      &      .and. is_end_of_day .and. maxyear_sediment>0 ) .or. lspinup_sediment
-   ! FIXME: not first step of next day, i.e. wait until after last hamocc4bcm()?
+   lspinup_sediment = ( mod(nyear-1,maxyear_ocean)==0 .and. nday_of_year==1  &
+      &      .and. is_start_of_day .and. maxyear_sediment>0 ) .or. lspinup_sediment
 
    if ( lspinup_sediment ) then
-      if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
-         &     'sedmnt_offline(): sediment spin-up starting'
+      ! increase the off-line sediment integration counter
+      iburst = iburst + 1
+
+      if (mnproc == 1) write(io_stdo_bgc,'(a,i4)')                         &
+         &     'sedmnt_offline(): sediment spin-up starting, iburst =', iburst
 
       ! set up sediment layers (much higher diffusion rate; correct timestep)
       call bodensed(kpie,kpje,kpke,pddpo)
@@ -327,10 +341,10 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
       nday_in_year_save = nday_in_year
 
       do iyear = 1, maxyear
-         nyear_global = nyear_global + 1
-         if (mnproc.eq.1) write(io_stdo_bgc,*) 'sedmnt_offline(): nyear_global = ', nyear_global
+         if (mnproc == 1) write(io_stdo_bgc,'(a,i6)')                      &
+               &         'sedmnt_offline(): nyear_global = ', nyear_global
          do imonth = 1, 12
-            call updcln_onlysed() ! do a monthly calendar update only for sediment_step()
+            dtoff = 3600*24*nd_in_m(nmonth)
             call sediment_step(idm,jdm,kdm,pglat, bgc_dp,bgc_dx,bgc_dy,    &
                & bgc_s_kbo_clim(:,:,imonth), bgc_rho_kbo_clim(:,:,imonth), &
                & omask,                                                    &
@@ -342,22 +356,24 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear,                    &
             ! write monthly outputs (assuming first index is mo)
             if (maxyear <= 20) then
                nacc_bgc(1) = 1 ! mo (#timesteps)
-               if (GLB_INVENTORY(1).ne.0)                                        &
+               if (GLB_INVENTORY(1) /= 0)                                        &
                   &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
                call ncwrt_bgc(1) ! ncout_hamocc.F
                nacc_bgc(1) = 0
             endif
+            call updcln_onlysed() ! do a monthly calendar update only for sediment_step()
          enddo
          ! write yearly outputs (assuming second index is yr)
          nacc_bgc(2) = 12 ! mo (#timesteps)
-         if (GLB_INVENTORY(2).ne.0)                                        &
+         if (GLB_INVENTORY(2) /= 0)                                        &
             &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
          imonth = 0 ! triggers writing of yearly averages
          call ncwrt_bgc(2) ! ncout_hamocc.F
          nacc_bgc(2) = 0
+         nyear_global = nyear_global + 1
       enddo
 
-      if (mnproc.eq.1) write(io_stdo_bgc,*)                             &
+      if (mnproc == 1) write(io_stdo_bgc,*)                             &
          &     'sedmnt_offline(): sediment spin-up ended'
       lspinup_sediment = .false.
 
@@ -387,13 +403,13 @@ subroutine alloc_mem_sedmnt_offline(kpie, kpje)
    integer :: kpie, kpje
    integer :: errstat
 
-   if (mnproc.eq.1) then
+   if (mnproc == 1) then
       write(io_stdo_bgc,*)' '
       write(io_stdo_bgc,*)'Memory allocation for spin-up-specific sediment modules:'
       write(io_stdo_bgc,*)' '
    endif
 
-   if (mnproc.eq.1) then
+   if (mnproc == 1) then
       write(io_stdo_bgc,*)'Memory allocation for variables ocetra_kbo_avg and ocetra_kbo_clim ...'
       write(io_stdo_bgc,*)'First dimension    : ',kpie
       write(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -402,13 +418,13 @@ subroutine alloc_mem_sedmnt_offline(kpie, kpje)
    endif
 
    allocate (ocetra_kbo_avg(kpie,kpje,nocetra),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory ocetra_kbo_avg'
+   if(errstat /= 0) stop 'not enough memory ocetra_kbo_avg'
    allocate (ocetra_kbo_clim(kpie,kpje,nocetra,12),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory ocetra_kbo_clim'
+   if(errstat /= 0) stop 'not enough memory ocetra_kbo_clim'
    ocetra_kbo_avg(:,:,:) = 0.0
    ocetra_kbo_clim(:,:,:,:) = 0.0
 
-   if (mnproc.eq.1) then
+   if (mnproc == 1) then
       WRITE(io_stdo_bgc,*)'Memory allocation for flux climatologies (*_clim) ...'
       WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
       WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -416,32 +432,32 @@ subroutine alloc_mem_sedmnt_offline(kpie, kpje)
    endif
 
    allocate (prorca_avg(kpie,kpje),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory prorca_avg'
+   if(errstat /= 0) stop 'not enough memory prorca_avg'
    allocate (prcaca_avg(kpie,kpje),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory prcaca_avg'
+   if(errstat /= 0) stop 'not enough memory prcaca_avg'
    allocate (silpro_avg(kpie,kpje),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory silpro_avg'
+   if(errstat /= 0) stop 'not enough memory silpro_avg'
    allocate (produs_avg(kpie,kpje),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory produs_avg'
+   if(errstat /= 0) stop 'not enough memory produs_avg'
    prorca_avg(:,:) = 0.0
    prcaca_avg(:,:) = 0.0
    silpro_avg(:,:) = 0.0
    produs_avg(:,:) = 0.0
 
    allocate (prorca_clim(kpie,kpje,12),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory prorca_clim'
+   if(errstat /= 0) stop 'not enough memory prorca_clim'
    allocate (prcaca_clim(kpie,kpje,12),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory prcaca_clim'
+   if(errstat /= 0) stop 'not enough memory prcaca_clim'
    allocate (silpro_clim(kpie,kpje,12),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory silpro_clim'
+   if(errstat /= 0) stop 'not enough memory silpro_clim'
    allocate (produs_clim(kpie,kpje,12),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory produs_clim'
+   if(errstat /= 0) stop 'not enough memory produs_clim'
    prorca_clim(:,:,:) = 0.0
    prcaca_clim(:,:,:) = 0.0
    silpro_clim(:,:,:) = 0.0
    produs_clim(:,:,:) = 0.0
 
-   if (mnproc.eq.1) then
+   if (mnproc == 1) then
       WRITE(io_stdo_bgc,*)'Memory allocation for variables bolay_* ...'
       WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
       WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
@@ -449,41 +465,41 @@ subroutine alloc_mem_sedmnt_offline(kpie, kpje)
    endif
 
    allocate (bolay_avg(kpie,kpje),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory bolay_avg'
+   if(errstat /= 0) stop 'not enough memory bolay_avg'
    allocate (bolay_clim(kpie,kpje,12),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory bolay_clim'
+   if(errstat /= 0) stop 'not enough memory bolay_clim'
    bolay_avg(:,:) = 4000.0 ! maximum of lowest bottom layer thickness
    bolay_clim(:,:,:) = 0.0
 
    ALLOCATE (bgc_t_kbo_avg(kpie,kpje),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory bgc_t_kbo_avg'
+   if(errstat /= 0) stop 'not enough memory bgc_t_kbo_avg'
    ALLOCATE (bgc_t_kbo_clim(kpie,kpje,12),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory bgc_t_kbo_clim'
+   if(errstat /= 0) stop 'not enough memory bgc_t_kbo_clim'
    bgc_t_kbo_avg(:,:) = 0.0
    bgc_t_kbo_clim(:,:,:) = 0.0
 
    allocate (bgc_s_kbo_avg(kpie,kpje),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory bgc_s_kbo_avg'
+   if(errstat /= 0) stop 'not enough memory bgc_s_kbo_avg'
    allocate (bgc_s_kbo_clim(kpie,kpje,12),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory bgc_s_kbo_clim'
+   if(errstat /= 0) stop 'not enough memory bgc_s_kbo_clim'
    bgc_s_kbo_avg(:,:) = 0.0
    bgc_s_kbo_clim(:,:,:) = 0.0
 
    allocate (bgc_rho_kbo_avg(kpie,kpje),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory bgc_rho_kbo_avg'
+   if(errstat /= 0) stop 'not enough memory bgc_rho_kbo_avg'
    allocate (bgc_rho_kbo_clim(kpie,kpje,12),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory bgc_rho_kbo_clim'
+   if(errstat /= 0) stop 'not enough memory bgc_rho_kbo_clim'
    bgc_rho_kbo_avg(:,:) = 0.0
    bgc_rho_kbo_clim(:,:,:) = 0.0
 
    allocate (co3_kbo_avg(kpie,kpje),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory co3_kbo_avg'
+   if(errstat /= 0) stop 'not enough memory co3_kbo_avg'
    allocate (co3_kbo_clim(kpie,kpje,12),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory co3_kbo_clim'
+   if(errstat /= 0) stop 'not enough memory co3_kbo_clim'
    co3_kbo_avg(:,:) = 0.0
    co3_kbo_clim(:,:,:) = 0.0
 
-   if (mnproc.eq.1) then
+   if (mnproc == 1) then
       write(io_stdo_bgc,*)'Memory allocation for variables keqb_* ...'
       write(io_stdo_bgc,*)'First dimension    : ',11
       write(io_stdo_bgc,*)'Second dimension   : ',kpie
@@ -492,9 +508,9 @@ subroutine alloc_mem_sedmnt_offline(kpie, kpje)
    endif
 
    allocate (keqb_avg(11,kpie,kpje),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory keqb_avg'
+   if(errstat /= 0) stop 'not enough memory keqb_avg'
    allocate (keqb_clim(11,kpie,kpje,12),stat=errstat)
-   if(errstat.ne.0) stop 'not enough memory keqb_clim'
+   if(errstat /= 0) stop 'not enough memory keqb_clim'
    keqb_avg(:,:,:) = 0.0
    keqb_clim(:,:,:,:) = 0.0
 
