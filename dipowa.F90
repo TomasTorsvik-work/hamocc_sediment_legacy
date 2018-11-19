@@ -178,7 +178,7 @@ do iv = 1,npowtra
    enddo
 enddo
 
-if (.not. lspinup_sediment) then
+if (.not. lspinning_up_sed) then
    !
    ! sediment ocean interface
    !

@@ -146,8 +146,8 @@
       ldtrunbgc = 0
 #if defined(SED_OFFLINE)
       nstep_in_month = 0
-      iburst = 0
 #endif
+      nburst = 0
       nyear_global = 1
 
       CALL ALLOC_MEM_BGCMEAN(kpie,kpje,kpke)

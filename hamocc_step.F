@@ -9,7 +9,7 @@ c
       use mo_bgcmean
       use mo_control_bgc
 #ifdef SED_OFFLINE
-      use mo_sedmnt_offline, only: sedmnt_offline ! subroutine
+      use mo_sedmnt_offline, only: sedmnt_offline, prepare_clim ! subroutines
 #endif
 c
       implicit none
@@ -34,7 +34,6 @@ c
      .    bgcwrt(l) = .true.
       enddo
 c
-      is_end_of_day = mod(nstep,nstep_in_day)==0
       is_start_of_day = mod(nstep-1,nstep_in_day)==0
 #ifdef SED_OFFLINE
       call sedmnt_offline(idm, jdm, kdm, maxyear_sediment, nstep,
@@ -46,6 +45,15 @@ c
      .            bgc_pu,bgc_pw,bgc_dpio,bgc_awnd,bgc_atmco2,bgc_flxco2,
      .            nyear,nmonth,nday,nd_in_m(nmonth),ldtmonth,ldtday,
      .            omask,nday_in_year,bgc_flxdms)
+
+      is_end_of_day = mod(nstep,nstep_in_day)==0
+#ifdef SED_OFFLINE
+      ! accumulate bottom water tracers when in
+      ! the last year of MICOM/HAMOCC simulation
+      if ( (lsed_wclim .or. lsed_spinup) .and. mod(nyear,maxyear_ocean)==0 ) then
+         call prepare_clim(idm, jdm, kdm, maxyear_sediment, nstep)
+      endif
+#endif
 
       if ( nday_of_year==nday_in_year .and. is_end_of_day ) then
          nyear_global = nyear_global + 1

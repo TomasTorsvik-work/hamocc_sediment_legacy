@@ -59,7 +59,7 @@ subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,        &
 ! variable whose mutability is normally restricted with INTENT(IN).
 ! We could overload the INTENT, possibly through an optional logical
 ! argument in an INTERFACE, but it may be more confusing than helpful.
-! In the standard (.not. lspinup_sediment) case, prorca etc. will have
+! In the standard (.not. lspinning_up_sed) case, prorca etc. will have
 ! been passed for the prorca_ etc. dummy arguments (prorca_ => prorca),
 ! so it doesn't matter to which we assign values.
 ! However, in the standard case we must assign to ocetra(:,:,kbo,:) as
@@ -201,7 +201,7 @@ call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
 
 do i = 1, kpie
    if(omask(i,j) > 0.5) then
-      if ( .not. lspinup_sediment ) then
+      if ( .not. lspinning_up_sed ) then
          sedfluxo(i,j,ipowasi) = sedfluxo(i,j,ipowasi) +                   &
             &    (silsat-sediso(i,0) - ocetra_(i,j,isilica))*bolay_(i,j)
 
@@ -282,7 +282,7 @@ call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
 
 do i = 1, kpie
    if(omask(i,j) > 0.5) then
-      if ( .not. lspinup_sediment ) then
+      if ( .not. lspinning_up_sed ) then
          ocetra(i,j,kbo(i,j),ioxygen) = sediso(i,0)
       endif
       sedlay(i,j,1,issso12) = sedlay(i,j,1,issso12)                  &
@@ -294,7 +294,7 @@ do i = 1, kpie
       sedlay(i,j,1,issso14)                                     &
          &      = sedlay(i,j,1,issso14)+pror14(i,j)/(porsol(1)*seddw(1))
 #endif
-      if ( .not. lspinup_sediment ) then
+      if ( .not. lspinning_up_sed ) then
          prorca(i,j) = 0.
 #ifdef __c_isotopes
          pror13(i,j) = 0.
@@ -496,7 +496,7 @@ do i = 1, kpie
       sedlay(i,j,1,isssc13) = sedlay(i,j,1,isssc13)+prca13(i,j)/(porsol(1)*seddw(1))
       sedlay(i,j,1,isssc14) = sedlay(i,j,1,isssc14)+prca14(i,j)/(porsol(1)*seddw(1))
 #endif
-      if ( .not. lspinup_sediment ) then
+      if ( .not. lspinning_up_sed ) then
          prcaca(i,j) = 0.
 #ifdef __c_isotopes
          prca13(i,j) = 0.
@@ -558,7 +558,7 @@ do j = 1, kpje
 enddo
 !$OMP END PARALLEL DO
 
-if ( .not. lspinup_sediment ) then
+if ( .not. lspinning_up_sed ) then
 !$OMP PARALLEL DO
 do j = 1, kpje
    do i = 1, kpie

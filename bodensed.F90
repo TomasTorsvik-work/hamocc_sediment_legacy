@@ -60,7 +60,7 @@
       REAL :: sumsed
       INTEGER :: kpie,kpje,kpke,i,j,k
 
-      if (lspinup_sediment) then
+      if (lspinning_up_sed) then
          dtsed = dtoff
          rdtsed = dtoff/dtbgc
       else

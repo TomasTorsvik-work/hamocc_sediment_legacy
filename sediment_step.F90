@@ -66,7 +66,7 @@ real, intent(in)     :: co3_   (kpie,kpje)
 !-----------------------------------------------------------------------
 ! Sediment module
 
-if (lspinup_sediment) then
+if (lspinning_up_sed) then
    dtsed = dtoff
    rdtsed = dtoff/dtbgc
 else

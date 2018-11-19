@@ -84,12 +84,13 @@
       integer :: p_joff,p_ioff
 
 #ifdef SED_OFFLINE
+      lcompleted_clim  = .false.
       namelist /bgcnml/ atm_co2, maxyear_sediment, maxyear_ocean,    &
          &              lsed_rclim, lsed_wclim, lsed_spinup
 #else
       namelist /bgcnml/ atm_co2
 #endif
-      lspinup_sediment = .false.
+      lspinning_up_sed = .false.
 
 !
 ! Initialize overall time step counter.

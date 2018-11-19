@@ -1,6 +1,5 @@
 #if defined(SED_OFFLINE)
-subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
-   &                       ,rstfnm)
+subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplmon,rstfnm)
 
 !-----------------------------------------------------------------------
 !
@@ -23,10 +22,7 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
 !     *INTEGER* *kpie*       - 1st dimension of model grid.
 !     *INTEGER* *kpje*       - 2nd dimension of model grid.
 !     *INTEGER* *kpke*       - 3rd (vertical) dimension of model grid.
-!     *INTEGER* *kplyear*    - year  in ocean restart date
 !     *INTEGER* *kplmon*     - month of the climatology \in {1, 2, ..., 12}
-!     *INTEGER* *kplday*     - day   in ocean restart date
-!     *INTEGER* *kpldtoce*   - step  in ocean restart date
 !     *CHAR*    *rstfnm*     - climatology file name string
 !
 !-----------------------------------------------------------------------
@@ -43,7 +39,7 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
 ! Function arguments
 !
    integer,          intent(in)  :: kpie,kpje,kpke
-   integer,          intent(in)  :: kplyear,kplmon,kplday,kpldtoce
+   integer,          intent(in)  :: kplmon
    character(len=*), intent(in)  :: rstfnm
 
 ! Local variables

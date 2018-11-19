@@ -4,6 +4,7 @@ c
       use mod_nctools
       use netcdf, only : nf90_fill_double
       use types,  only : r8
+      use mo_control_bgc, only : lspinning_up_sed
 c
       implicit none
 c
@@ -260,15 +261,15 @@ c
           endif
         elseif (expcnf.eq.'cesm') then
           if (diagmon) then
-            call pstdat(ny,nm,nd,1)
+            if ( .not. lspinning_up_sed ) call pstdat(ny,nm,nd,1)
             write(fname,'(4a,i4.4,a,i2.2,a)')
      .        runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'.nc'
           elseif (diagann) then
-            call pstdat(ny,nm,nd,1)
+            if ( .not. lspinning_up_sed ) call pstdat(ny,nm,nd,1)
             write(fname,'(4a,i4.4,a)')
      .        runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
           else
-            call pstdat(ny,nm,nd,nint(diagfq))
+            if ( .not. lspinning_up_sed ) call pstdat(ny,nm,nd,nint(diagfq))
             write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
      .        runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,
      .        '.nc'
@@ -1758,7 +1759,7 @@ c
 c
        call definevar(irec(iogrp),iogrp,cmpflg,timeunits,calendar)
 
-       call nctime(datenum,calendar,timeunits,startdate)
+       if ( .not. lspinning_up_sed ) call nctime(datenum,calendar,timeunits,startdate)
 c
 c --- write auxillary dimension information 
       if (irec(iogrp).eq.1) then
