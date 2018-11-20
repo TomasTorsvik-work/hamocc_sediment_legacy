@@ -61,13 +61,13 @@ datenum=time-time0-0.5*diagfq_bgc(iogrp)/nstep_in_day
 ! get file name
 write (seqstring,'(I0.2)') nburst
 if ( nmonth == 0 ) then
-   call diafnm(runid,runid_len,expcnf,"hsedy."//seqstring,nstep,           &
-      &         filefq_bgc(iogrp)/real(nstep_in_day),.false.,.true.,       &
-      &         fname(iogrp)) ! mod_dia.F
+   call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp))//"."//seqstring,nstep, &
+      &         filefq_bgc(iogrp)/real(nstep_in_day),filemon_sed(iogrp),       &
+      &         fileann_sed(iogrp),fname(iogrp)) ! mod_dia.F
 else
-   call diafnm(runid,runid_len,expcnf,"hsedm."//seqstring,nstep,           &
-      &        filefq_bgc(iogrp)/real(nstep_in_day),.true.,.false.,        &
-      &        fname(iogrp)) ! mod_dia.F
+   call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp))//"."//seqstring,nstep, &
+      &        filefq_bgc(iogrp)/real(nstep_in_day),filemon_sed(iogrp),        &
+      &        fileann_sed(iogrp),fname(iogrp)) ! mod_dia.F
 endif
 irec(iogrp)=1
 if (((fileann_bgc(iogrp) .and. nday_of_year==1 .or.                        &
@@ -151,157 +151,6 @@ call wrtbur(jburssster(iogrp),BUR_SSSTER(iogrp),rnacc*1e3,0.,cmpflg,       &
 
 ! close netcdf file
 call ncfcls
-
-! Initialise fields
-call inisrf(jkwco2(iogrp),0.)
-call inisrf(jpco2(iogrp),0.)
-call inisrf(jdmsflux(iogrp),0.)
-call inisrf(jco2fxd(iogrp),0.)
-call inisrf(jco2fxu(iogrp),0.)
-call inisrf(joxflux(iogrp),0.)
-call inisrf(jniflux(iogrp),0.)
-call inisrf(jn2ofx(iogrp),0.)
-call inisrf(jdms(iogrp),0.)
-call inisrf(jdmsprod(iogrp),0.)
-call inisrf(jdms_bac(iogrp),0.)
-call inisrf(jdms_uv(iogrp),0.)
-call inisrf(jexport(iogrp),0.)
-call inisrf(jexposi(iogrp),0.)
-call inisrf(jexpoca(iogrp),0.)
-call inisrf(jsrfdic(iogrp),0.)
-call inisrf(jsrfalkali(iogrp),0.)
-call inisrf(jsrfphosph(iogrp),0.)
-call inisrf(jsrfoxygen(iogrp),0.)
-call inisrf(jsrfano3(iogrp),0.)
-call inisrf(jsrfsilica(iogrp),0.)
-call inisrf(jsrfiron(iogrp),0.)
-call inisrf(jintphosy(iogrp),0.)
-call inisrf(jintnfix(iogrp),0.)
-call inisrf(jintdnit(iogrp),0.)
-call inisrf(jcarflx0100(iogrp),0.)
-call inisrf(jcarflx0500(iogrp),0.)
-call inisrf(jcarflx1000(iogrp),0.)
-call inisrf(jcarflx2000(iogrp),0.)
-call inisrf(jcarflx4000(iogrp),0.)
-call inisrf(jcarflx_bot(iogrp),0.)
-call inisrf(jbsiflx0100(iogrp),0.)
-call inisrf(jbsiflx0500(iogrp),0.)
-call inisrf(jbsiflx1000(iogrp),0.)
-call inisrf(jbsiflx2000(iogrp),0.)
-call inisrf(jbsiflx4000(iogrp),0.)
-call inisrf(jbsiflx_bot(iogrp),0.)
-call inisrf(jcalflx0100(iogrp),0.)
-call inisrf(jcalflx0500(iogrp),0.)
-call inisrf(jcalflx1000(iogrp),0.)
-call inisrf(jcalflx2000(iogrp),0.)
-call inisrf(jcalflx4000(iogrp),0.)
-call inisrf(jcalflx_bot(iogrp),0.)
-#ifdef CFC
-call inisrf(jcfc11fx(iogrp),0.)
-call inisrf(jcfc12fx(iogrp),0.)
-call inisrf(jsf6fx(iogrp),0.)
-#endif
-call inisrf(jatmco2(iogrp),0.)
-#ifdef DIFFAT
-call inisrf(jatmo2(iogrp),0.)
-call inisrf(jatmn2(iogrp),0.)
-#endif
-#ifdef natDIC
-call inisrf(jnatco2fx(iogrp),0.)
-#endif
-
-call inilyr(jdp(iogrp),0.)
-call inilyr(jdic(iogrp),0.)
-call inilyr(jalkali(iogrp),0.)
-call inilyr(jphosy(iogrp),0.)
-call inilyr(jphosph(iogrp),0.)
-call inilyr(joxygen(iogrp),0.)
-call inilyr(jano3(iogrp),0.)
-call inilyr(jsilica(iogrp),0.)
-call inilyr(jdoc(iogrp),0.)
-call inilyr(jphyto(iogrp),0.)
-call inilyr(jgrazer(iogrp),0.)
-call inilyr(jpoc(iogrp),0.)
-call inilyr(jcalc(iogrp),0.)
-call inilyr(jopal(iogrp),0.)
-call inilyr(jiron(iogrp),0.)
-call inilyr(jco3(iogrp),0.)
-call inilyr(jph(iogrp),0.)
-call inilyr(jomegac(iogrp),0.)
-call inilyr(jn2o(iogrp),0.)
-call inilyr(jaou(iogrp),0.)
-call inilyr(jprefo2(iogrp),0.)
-call inilyr(jprefpo4(iogrp),0.)
-call inilyr(jprefalk(iogrp),0.)
-#ifdef __c_isotopes
-call inilyr(jdic13(iogrp),0.)
-call inilyr(jdic14(iogrp),0.)
-#endif
-#ifdef AGG
-call inilyr(jnos(iogrp),0.)
-call inilyr(jwphy(iogrp),0.)
-call inilyr(jwnos(iogrp),0.)
-call inilyr(jeps(iogrp),0.)
-call inilyr(jasize(iogrp),0.)
-#endif
-#ifdef CFC
-call inilyr(jcfc11(iogrp),0.)
-call inilyr(jcfc12(iogrp),0.)
-call inilyr(jsf6(iogrp),0.)
-#endif
-#ifdef natDIC
-call inilyr(jnatco3(iogrp),0.)
-call inilyr(jnatalkali(iogrp),0.)
-call inilyr(jnatdic(iogrp),0.)
-call inilyr(jnatcalc(iogrp),0.)
-call inilyr(jnatomegac(iogrp),0.)
-#endif
-
-call inilvl(jlvldic(iogrp),0.)
-call inilvl(jlvlalkali(iogrp),0.)
-call inilvl(jlvlphosy(iogrp),0.)
-call inilvl(jlvlphosph(iogrp),0.)
-call inilvl(jlvloxygen(iogrp),0.)
-call inilvl(jlvlano3(iogrp),0.)
-call inilvl(jlvlsilica(iogrp),0.)
-call inilvl(jlvldoc(iogrp),0.)
-call inilvl(jlvlphyto(iogrp),0.)
-call inilvl(jlvlgrazer(iogrp),0.)
-call inilvl(jlvlpoc(iogrp),0.)
-call inilvl(jlvlcalc(iogrp),0.)
-call inilvl(jlvlopal(iogrp),0.)
-call inilvl(jlvliron(iogrp),0.)
-call inilvl(jlvlco3(iogrp),0.)
-call inilvl(jlvlph(iogrp),0.)
-call inilvl(jlvlomegac(iogrp),0.)
-call inilvl(jlvln2o(iogrp),0.)
-call inilvl(jlvlaou(iogrp),0.)
-call inilvl(jlvlprefo2(iogrp),0.)
-call inilvl(jlvlprefpo4(iogrp),0.)
-call inilvl(jlvlprefalk(iogrp),0.)
-#ifdef __c_isotopes
-call inilvl(jlvldic13(iogrp),0.)
-call inilvl(jlvldic14(iogrp),0.)
-#endif
-#ifdef AGG
-call inilvl(jlvlnos(iogrp),0.)
-call inilvl(jlvlwphy(iogrp),0.)
-call inilvl(jlvlwnos(iogrp),0.)
-call inilvl(jlvleps(iogrp),0.)
-call inilvl(jlvlasize(iogrp),0.)
-#endif
-#ifdef CFC
-call inilvl(jlvlcfc11(iogrp),0.)
-call inilvl(jlvlcfc12(iogrp),0.)
-call inilvl(jlvlsf6(iogrp),0.)
-#endif
-#ifdef natDIC
-call inilvl(jlvlnatco3(iogrp),0.)
-call inilvl(jlvlnatalkali(iogrp),0.)
-call inilvl(jlvlnatdic(iogrp),0.)
-call inilvl(jlvlnatcalc(iogrp),0.)
-call inilvl(jlvlnatomegac(iogrp),0.)
-#endif
 
 call inisdm(jpowaic(iogrp),0.)
 call inisdm(jpowaal(iogrp),0.)
