@@ -348,8 +348,6 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
             dtoff = 3600*24*nd_in_m(nmonth)
             call bodensed(kpie,kpje,kpke,pddpo)
 
-            if (mnproc == 1) write(io_stdo_bgc,*)                             &
-               &     'MvH sed0 sedlay(9,18,1,isssc12) =', sedlay(9,18,1,isssc12)
             call sediment_step(idm,jdm,kdm,pglat, bgc_dp,bgc_dx,bgc_dy,    &
                & bgc_s_kbo_clim(:,:,nmonth), bgc_rho_kbo_clim(:,:,nmonth), &
                & omask,                                                    &
@@ -358,14 +356,12 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
                & prorca_clim(:,:,nmonth), prcaca_clim(:,:,nmonth),         &
                & silpro_clim(:,:,nmonth), produs_clim(:,:,nmonth),         &
                & co3_kbo_clim(:,:,nmonth))
-            if (mnproc == 1) write(io_stdo_bgc,*)                             &
-               &     'MvH sed1 sedlay(9,18,1,isssc12) =', sedlay(9,18,1,isssc12)
             ! write monthly outputs (assuming first index is mo)
             if (maxyear <= 20) then
                nacc_bgc(1) = 1 ! mo (#timesteps)
                if (GLB_INVENTORY(1) /= 0)                                        &
                   &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-               call ncwrt_bgc(1) ! ncout_hamocc.F
+               call ncwrt_onlysed(1) ! ncout_hamocc.F
                nacc_bgc(1) = 0
             endif
          enddo
@@ -374,7 +370,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
          if (GLB_INVENTORY(2) /= 0)                                        &
             &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
          nmonth = 0 ! triggers writing of yearly averages
-         call ncwrt_bgc(2) ! ncout_hamocc.F
+         call ncwrt_onlysed(2) ! ncout_hamocc.F
          nacc_bgc(2) = 0
          nyear_global = nyear_global + 1
       enddo
