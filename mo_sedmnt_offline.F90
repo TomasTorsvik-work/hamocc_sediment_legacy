@@ -111,9 +111,43 @@ real, dimension (:,:,:),   allocatable :: bgc_rho_kbo_clim
 real, dimension (:,:),     allocatable :: co3_kbo_avg
 real, dimension (:,:,:),   allocatable :: co3_kbo_clim
 
+! averaging and writing frequencies for diagnostic output
+integer, save      :: nsed
+integer, parameter :: nsedmax = 5
+real,    dimension(nsedmax), save :: diagfq_sed,filefq_sed
+integer, dimension(nsedmax), save :: nacc_sed
+logical, dimension(nsedmax), save :: diagmon_sed, diagann_sed,    &
+   &                                 diagdec_sed, diagcen_sed,    &
+   &                                 diagmil_sed,                 &
+   &                                 filemon_sed, fileann_sed,    &
+   &                                 filedec_sed, filecen_sed,    &
+   &                                 filemil_sed, sedwrt
+
+! namelist for diagnostic output
+!
+integer, dimension(nsedmax), save ::                                &
+   & SDM_POWAIC    =0    ,SDM_POWAAL    =0    ,SDM_POWAPH    =0  ,  &
+   & SDM_POWAOX    =0    ,SDM_POWN2     =0    ,SDM_POWNO3    =0  ,  &
+   & SDM_POWASI    =0    ,SDM_SSSO12    =0    ,SDM_SSSSIL    =0  ,  &
+   & SDM_SSSC12    =0    ,SDM_SSSTER    =0                       ,  &
+   & BUR_SSSO12    =0    ,BUR_SSSC12    =0    ,BUR_SSSSIL    =0  ,  &
+   & BUR_SSSTER    =0                                            ,  &
+   & GLB_AVEPERIO  =0    ,GLB_FILEFREQ  =0    ,GLB_COMPFLAG  =0  ,  &
+   & GLB_NCFORMAT  =0    ,GLB_INVENTORY =0
+character(len=10), dimension(nsedmax), save :: GLB_FNAMETAG
+namelist /DIASED/                                                   &
+   & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,      &
+   & SDM_POWAOX        ,SDM_POWN2         ,SDM_POWNO3        ,      &
+   & SDM_POWASI        ,SDM_SSSO12        ,SDM_SSSSIL        ,      &
+   & SDM_SSSC12        ,SDM_SSSTER                           ,      &
+   & BUR_SSSO12        ,BUR_SSSC12        ,BUR_SSSSIL        ,      &
+   & BUR_SSSTER                                              ,      &
+   & GLB_AVEPERIO      ,GLB_FILEFREQ      ,GLB_COMPFLAG      ,      &
+   & GLB_NCFORMAT      ,GLB_FNAMETAG      ,GLB_INVENTORY
+
 ! private variables and subprograms
 !
-integer, private :: i,j,iocetra
+integer, private :: i,j,iocetra,n
 character(len = *), parameter, private :: bscfnmbase = "bottom_seawater_clim"
 character(len =30),            private :: bscfnm
 character(len = 4),            private :: seqstring
@@ -343,7 +377,9 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
          if (mnproc == 1) write(io_stdo_bgc,'(a,i6)')                      &
                &         'sedmnt_offline(): nyear_global = ', nyear_global
          do nmonth = 1, 12
-            call updcln_onlysed() ! do a monthly calendar update only for sediment_step()
+            ! do a monthly calendar update only for sediment_step()
+            call updcln_onlysed()
+
             ! set up sediment layers (much higher diffusion rate; correct timestep)
             dtoff = 3600*24*nd_in_m(nmonth)
             call bodensed(kpie,kpje,kpke,pddpo)
@@ -356,22 +392,44 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
                & prorca_clim(:,:,nmonth), prcaca_clim(:,:,nmonth),         &
                & silpro_clim(:,:,nmonth), produs_clim(:,:,nmonth),         &
                & co3_kbo_clim(:,:,nmonth))
-            ! write monthly outputs (assuming first index is mo)
-            if (maxyear <= 20) then
-               nacc_bgc(1) = 1 ! mo (#timesteps)
-               if (GLB_INVENTORY(1) /= 0)                                        &
-                  &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-               call ncwrt_onlysed(1) ! ncout_hamocc.F
-               nacc_bgc(1) = 0
+
+!TODO: 1. update sedwrt() instead of setting..? (inner/outer loop)
+!      2. inner/outer loop
+!      3. no nstep, nday_... but use nyear and nmonth counters.
+
+            ! write monthly output fields
+            do n = 1, nsed
+               nacc_sed(n) = 1 ! mo (#timesteps)
+               if diagmon_sed(n) then
+                  if (GLB_INVENTORY(n) /= 0) then                          &
+                     call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+                  endif
+                  call ncwrt_onlysed(n) ! ncout_onlysed.F90
+                  nacc_sed(n)=0
+               endif
+            enddo
+
+         enddo
+
+         !FIXME: Following not very useful because no special code in ncout_onlysed.F90.
+         !       Moreover, now all other cases are excluded.  Better: something with fq.
+         !TODO:  Can also combine below in one loop / if .. or .. or ... -> DONE.
+
+         ! write yearly and multi-yearly output fields
+         do n = 1, nsed
+            nacc_sed(n) = nacc_sed(n) + 12 ! mo (#timesteps)
+            if ( (diagann_sed(n)                              .or.      &
+               & (diagdec_sed(n) .and. mod(nyear,   10) == 0) .or.      &
+               & (diagcen_sed(n) .and. mod(nyear,  100) == 0) .or.      &
+               & (diagmil_sed(n) .and. mod(nyear, 1000) == 0) ) then
+               if (GLB_INVENTORY(n) /= 0) then                          &
+                  call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
+               endif
+               call ncwrt_onlysed(n) ! ncout_onlysed.F90
+               nacc_sed(n) = 0
             endif
          enddo
-         ! write yearly outputs (assuming second index is yr)
-         nacc_bgc(2) = 12 ! mo (#timesteps)
-         if (GLB_INVENTORY(2) /= 0)                                        &
-            &  CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
-         nmonth = 0 ! triggers writing of yearly averages
-         call ncwrt_onlysed(2) ! ncout_hamocc.F
-         nacc_bgc(2) = 0
+
          nyear_global = nyear_global + 1
       enddo
 
@@ -406,6 +464,125 @@ end subroutine sedmnt_offline
 subroutine alloc_mem_sedmnt_offline(kpie, kpje)
    integer :: kpie, kpje
    integer :: errstat
+
+   ! determine number of output groups
+   nsed = 0
+   do n = 1, nsedmax
+      if (GLB_AVEPERIO(n) /= 0) then
+         nsed = nsed + 1
+         nacc_sed(n) = 0
+      endif
+   enddo
+
+   do n = 1, nsed
+      GLB_FILEFREQ(n) = max(GLB_AVEPERIO(n), GLB_FILEFREQ(n))
+      !diagfq_sed(n) = GLB_AVEPERIO(n)/30 !FIXME: Do we want to use it?
+      diagmon_sed(n) = .false.
+      diagann_sed(n) = .false.
+      diagdec_sed(n) = .false. ! isn't actually used now
+      diagcen_sed(n) = .false. ! isn't actually used now
+      diagmil_sed(n) = .false. ! isn't actually used now
+      if (GLB_AVEPERIO(n) == 30) then
+         diagmon_sed(n) = .true.
+      elseif (GLB_AVEPERIO(n) == 365) then
+         diagann_sed(n) = .true.
+      elseif (GLB_AVEPERIO(n) == 3650) then
+         diagdec_sed(n) = .true.
+      elseif (GLB_AVEPERIO(n) == 36500) then
+         diagcen_sed(n) = .true.
+      elseif (GLB_AVEPERIO(n) == 365000) then
+         diagmil_sed(n) = .true.
+      endif
+      if (GLB_FILEFREQ(n) < 0) then
+         filefq_sed(n)=-real(nstepinday)/GLB_FILEFREQ(n)
+      else
+         filefq_sed(n)=nstepinday*max(1,GLB_FILEFREQ(n))
+      endif
+      filemon_sed(n) = .false.
+      fileann_sed(n) = .false.
+      filedec_sed(n) = .false.
+      filecen_sed(n) = .false.
+      filemil_sed(n) = .false.
+      if (GLB_FILEFREQ(n) == 30) then
+         filemon_sed(n) = .true.
+      elseif (GLB_FILEFREQ(n) == 365) then
+         fileann_sed(n) = .true.
+      elseif (GLB_FILEPERIO(n) == 3650) then
+         filedec_sed(n) = .true.
+      elseif (GLB_FILEPERIO(n) == 36500) then
+         filecen_sed(n) = .true.
+      elseif (GLB_FILEPERIO(n) == 365000) then
+         filemil_sed(n) = .true.
+      endif
+   enddo
+
+   i_bsc_sed = 0
+   do n = 1,nsed
+      if (SDM_POWAIC(n) > 0) i_bsc_sed = i_bsc_sed+1
+      jpowaic(n) = i_bsc_sed*min(1,SDM_POWAIC(n))
+      if (SDM_POWAAL(n) > 0) i_bsc_sed = i_bsc_sed+1
+      jpowaal(n) = i_bsc_sed*min(1,SDM_POWAAL(n))
+      if (SDM_POWAPH(n) > 0) i_bsc_sed = i_bsc_sed+1
+      jpowaph(n) = i_bsc_sed*min(1,SDM_POWAPH(n))
+      if (SDM_POWAOX(n) > 0) i_bsc_sed = i_bsc_sed+1
+      jpowaox(n) = i_bsc_sed*min(1,SDM_POWAOX(n))
+      if (SDM_POWN2(n)  > 0) i_bsc_sed = i_bsc_sed+1
+      jpown2(n)  = i_bsc_sed*min(1,SDM_POWN2(n))
+      if (SDM_POWNO3(n) > 0) i_bsc_sed = i_bsc_sed+1
+      jpowno3(n) = i_bsc_sed*min(1,SDM_POWNO3(n))
+      if (SDM_POWASI(n) > 0) i_bsc_sed = i_bsc_sed+1
+      jpowasi(n) = i_bsc_sed*min(1,SDM_POWASI(n))
+      if (SDM_SSSO12(n) > 0) i_bsc_sed = i_bsc_sed+1
+      jssso12(n) = i_bsc_sed*min(1,SDM_SSSO12(n))
+      if (SDM_SSSSIL(n) > 0) i_bsc_sed = i_bsc_sed+1
+      jssssil(n) = i_bsc_sed*min(1,SDM_SSSSIL(n))
+      if (SDM_SSSC12(n) > 0) i_bsc_sed = i_bsc_sed+1
+      jsssc12(n) = i_bsc_sed*min(1,SDM_SSSC12(n))
+      if (SDM_SSSTER(n) > 0) i_bsc_sed = i_bsc_sed+1
+      jssster(n) = i_bsc_sed*min(1,SDM_SSSTER(n))
+   enddo
+
+   i_bsc_bur = 0
+   do n = 1,nsed
+      if (BUR_SSSO12(n) > 0) i_bsc_bur = i_bsc_bur+1
+      jburssso12(n) = i_bsc_bur*min(1,BUR_SSSO12(n))
+      if (BUR_SSSC12(n) > 0) i_bsc_bur = i_bsc_bur+1
+      jbursssc12(n) = i_bsc_bur*min(1,BUR_SSSC12(n))
+      if (BUR_SSSSIL(n) > 0) i_bsc_bur = i_bsc_bur+1
+      jburssssil(n) = i_bsc_bur*min(1,BUR_SSSSIL(n))
+      if (BUR_SSSTER(n) > 0) i_bsc_bur = i_bsc_bur+1
+      jburssster(n) = i_bsc_bur*min(1,BUR_SSSTER(n))
+   enddo
+
+   nsedt_sed  = i_bsc_sed
+   nsedt_bur  = i_bsc_bur
+
+   if (mnproc == 1) THEN
+        write(io_stdo_bgc,*)'Memory allocation for variable sedtsed ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',ks
+        write(io_stdo_bgc,*)'Forth dimension    : ',nsedt_sed
+   endif
+
+   allocate (sedt_sed(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,ks,          &
+      &      nsedt_sed),stat=errstat)
+   if (errstat /= 0) STOP 'not enough memory sedt_sed'
+   if (nsedt_sed /= 0) sedt_sed = 0.
+
+   if (mnproc == 1) THEN
+        write(io_stdo_bgc,*)'Memory allocation for variable sedtbur ...'
+        write(io_stdo_bgc,*)'First dimension    : ',kpie
+        write(io_stdo_bgc,*)'Second dimension   : ',kpje
+        write(io_stdo_bgc,*)'Third dimension    : ',nsedt_bur
+   endif
+
+   allocate (sedt_bur(1-nbdy:kpie+nbdy,1-nbdy:kpje+nbdy,             &
+      &      nsedt_bur),stat=errstat)
+   if (errstat /= 0) STOP 'not enough memory sedt_sed'
+   if (nsedt_bur /= 0) sedt_bur = 0.
+
+   !-- In HAMOCC, above is done by ALLOC_MEM_BGCMEAN() below by ALLOC_MEM_SEDMNT()
 
    if (mnproc == 1) then
       write(io_stdo_bgc,*)' '

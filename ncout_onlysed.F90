@@ -1,3 +1,4 @@
+#if defined(SED_OFFLINE)
 subroutine ncwrt_onlysed(iogrp)
 
 !-----------------------------------------------------------------------
@@ -28,24 +29,27 @@ use mod_xc
 use mod_dia       , only: diafnm,sigmar1,iotype
 use mo_control_bgc, only: dtbgc, nburst
 use mo_biomod     , only: k0100,k0500,k1000,k2000,k4000
-use mo_bgcmean
+!use mo_bgcmean   ! FIXME: otherwise collision of GLB_FNAMETAG, ...?
+use mo_sedmnt_offline ! TODO: maybe limit scope (only: GLB_FNAMETAG, ...)?
+                      !       or add this routine to mo_sedmnt_offline.F90
+                      !  or move namelist block from mo_sedmnt_offline.F90 to here
 
 implicit none
 
 #include "common_clndr.h90"
 #include "common_blocks.h90"
 
-integer iogrp
+integer, intent(in) :: iogrp
 
 integer i,j,k,l,nt
-integer nhour,ny,nm,nd,dayfrac,irec(nbgcmax),cmpflg
+integer nhour,ny,nm,nd,dayfrac,irec(nsedmax),cmpflg
 character(len= 2) seqstring
-character(len=80) fname(nbgcmax)
+character(len=80) fname(nsedmax)
 character(len=20) startdate
 character(len=30) timeunits
 real datenum,rnacc
-logical append2file(nbgcmax)
-data append2file /nbgcmax*.false./
+logical append2file(nsedmax)
+data append2file /nsedmax*.false./
 save fname,irec,append2file
 
 ! set time information
@@ -56,34 +60,27 @@ write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)')                           &
    &            'days since ',min(1800,nyear0),'-',1,'-',1,' 00:00'
 write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')                               &
    &            nyear0,'-',nmonth0,'-',nday0,' 00:00'
-datenum=time-time0-0.5*diagfq_bgc(iogrp)/nstep_in_day
+datenum=time-time0-0.5*diagfq_sed(iogrp)/nstep_in_day
 
-! get file name
+! get file name ! FIXME: we assume .not.append2file(iogrp), see ncout_hamocc.F to extend.
 write (seqstring,'(I0.2)') nburst
-if ( nmonth == 0 ) then
-   call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp))//"."//seqstring,nstep, &
-      &         filefq_bgc(iogrp)/real(nstep_in_day),filemon_sed(iogrp),       &
-      &         fileann_sed(iogrp),fname(iogrp)) ! mod_dia.F
-else
-   call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp))//"."//seqstring,nstep, &
-      &        filefq_bgc(iogrp)/real(nstep_in_day),filemon_sed(iogrp),        &
-      &        fileann_sed(iogrp),fname(iogrp)) ! mod_dia.F
-endif
+call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp))//"."//seqstring,nstep, &
+   &         filefq_sed(iogrp)/real(nstep_in_day),filemon_sed(iogrp),       &
+   &         fileann_sed(iogrp),fname(iogrp)) ! mod_dia.F
 irec(iogrp)=1
-if (((fileann_bgc(iogrp) .and. nday_of_year==1 .or.                        &
-   &  filemon_bgc(iogrp) .and. nday==1) .and. mod(nstep,nstep_in_day)<1)   &
-   &  .or. .not.(fileann_bgc(iogrp) .or. filemon_bgc(iogrp)) .and.         &
-   &  mod(nstep+.5,filefq_bgc(iogrp))<2.) then
-   append2file(iogrp)=.false.
-endif
+if ( (fileann_sed(iogrp) .or. filemon_sed(iogrp))                       &
+   & .or. .not.(fileann_sed(iogrp) .or. filemon_sed(iogrp)) .and.       &
+   &  mod(nstep+.5,filefq_sed(iogrp))<2.) then
+   append2file(iogrp) = .false.
+endif   ! /FIXME
 
 ! prepare output fields
 if (mnproc==1) then
-   write (lp,'(a,i6,a)') ' ncwrt_bgc: fields averaged over ',              &
-      &                    nacc_bgc(iogrp),' steps'
+   write (lp,'(a,i6,a)') ' ncwrt_sed: fields averaged over ',              &
+      &                    nacc_sed(iogrp),' steps'
    write(lp,*) 'irec(iogrp)',irec(iogrp)
 endif
-rnacc=1./real(nacc_bgc(iogrp))
+rnacc=1./real(nacc_sed(iogrp))
 cmpflg=GLB_COMPFLAG(iogrp)
 
 ! create output file
@@ -169,7 +166,7 @@ call inibur(jbursssc12(iogrp),0.)
 call inibur(jburssssil(iogrp),0.)
 call inibur(jburssster(iogrp),0.)
 
-nacc_bgc(iogrp)=0
+nacc_sed(iogrp)=0
 
 end subroutine ncwrt_onlysed
-
+#endif
