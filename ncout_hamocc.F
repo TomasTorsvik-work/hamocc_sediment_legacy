@@ -6,7 +6,7 @@ c --- -------------------------------------------
 c
       use mod_xc
       use mod_dia, only : diafnm,sigmar1,iotype
-      use mo_control_bgc, only : dtbgc, lspinning_up_sed, nburst
+      use mo_control_bgc, only : dtbgc
       use mo_biomod, only: k0100,k0500,k1000,k2000,k4000
       use mo_bgcmean
 c      
@@ -19,7 +19,6 @@ c
 c
       integer i,j,k,l,nt
       integer nhour,ny,nm,nd,dayfrac,irec(nbgcmax),cmpflg
-      character(len= 2) seqstring
       character(len=80) fname(nbgcmax)
       character(len=20) startdate
       character(len=30) timeunits
@@ -39,28 +38,14 @@ c --- set time information
       datenum=time-time0-0.5*diagfq_bgc(iogrp)/nstep_in_day
 c
 c --- get file name
-      if ( lspinning_up_sed ) then
-         write (seqstring,'(I0.2)') nburst
-         if ( nmonth == 0 ) then
-            call diafnm(runid,runid_len,expcnf,"hsedy."//seqstring,nstep,
-     .                  filefq_bgc(iogrp)/real(nstep_in_day),.false.,.true.,
-     .                  fname(iogrp)) ! mod_dia.F
-         else
-            call diafnm(runid,runid_len,expcnf,"hsedm."//seqstring,nstep,
-     .                  filefq_bgc(iogrp)/real(nstep_in_day),.true.,.false.,
-     .                  fname(iogrp)) ! mod_dia.F
-         endif
+      if (.not.append2file(iogrp)) then
+         call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp)),nstep,
+     .               filefq_bgc(iogrp)/real(nstep_in_day),filemon_bgc(iogrp),
+     .               fileann_bgc(iogrp),fname(iogrp))
+         append2file(iogrp)=.true.
          irec(iogrp)=1
       else
-         if (.not.append2file(iogrp)) then
-            call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp)),nstep,
-     .                  filefq_bgc(iogrp)/real(nstep_in_day),filemon_bgc(iogrp),
-     .                  fileann_bgc(iogrp),fname(iogrp))
-            append2file(iogrp)=.true.
-            irec(iogrp)=1
-         else
-            irec(iogrp)=irec(iogrp)+1
-         endif
+         irec(iogrp)=irec(iogrp)+1
       endif
       if (((fileann_bgc(iogrp).and.nday_of_year.eq.1.or.
      .  filemon_bgc(iogrp).and.nday.eq.1).and.mod(nstep,nstep_in_day)
@@ -110,7 +95,6 @@ c --- write auxillary dimension information
       call ncwrt1('depth','depth',depthslev)
       call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
 c
-      if ( .not. lspinning_up_sed ) then
 c --- finalize accumulation 
       call finlyr(jphyto(iogrp),jdp(iogrp))
       call finlyr(jgrazer(iogrp),jdp(iogrp))
@@ -544,7 +528,6 @@ c --- Store 3d level fields
      .  rnacc,0.,cmpflg,'natomegaclvl',
      .  'Natural OmegaC',' ','-')
 #endif
-      endif
 c
 c --- Store sediment fields
       call wrtsdm(jpowaic(iogrp),SDM_POWAIC(iogrp),rnacc*1e3,0.,cmpflg,
@@ -774,7 +757,6 @@ c
       call ncattr('positive','down')
       call ncattr('bounds','depth_bnds')  
       call ncdefvar('depth_bnds','bounds depth',ndouble,8)
-      if ( .not. lspinning_up_sed ) then
       call ncdefvar3d(SRF_KWCO2(iogrp),cmpflg,'p',
      .  'kwco2',' ',' ',' ',0)
       call ncdefvar3d(SRF_PCO2(iogrp),cmpflg,'p',
@@ -1052,7 +1034,6 @@ c --- define 3d level fields
       call ncdefvar3d(LVL_NATOMEGAC(iogrp),cmpflg,'p',
      .  'natomegaclvl','Natural OmegaC',' ','1',2)
 #endif
-      endif
 c
 c --- define sediment fields
       call ncdefvar3d(SDM_POWAIC(iogrp),cmpflg,'p',
