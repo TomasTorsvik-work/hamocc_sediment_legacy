@@ -261,18 +261,33 @@ c
           endif
         elseif (expcnf.eq.'cesm') then
           if (diagmon) then
-            if ( .not. lspinning_up_sed ) call pstdat(ny,nm,nd,1)
-            write(fname,'(4a,i4.4,a,i2.2,a)')
-     .        runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'.nc'
+            if ( lspinning_up_sed ) then
+               write(fname,'(4a,i6.6,a,i2.2,a)')
+     .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'.nc'
+            else
+               call pstdat(ny,nm,nd,1)
+               write(fname,'(4a,i4.4,a,i2.2,a)')
+     .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'.nc'
+            endif
           elseif (diagann) then
-            if ( .not. lspinning_up_sed ) call pstdat(ny,nm,nd,1)
-            write(fname,'(4a,i4.4,a)')
-     .        runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
+            if ( lspinning_up_sed ) then
+               write(fname,'(4a,i6.6,a)')
+     .           runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
+            else
+               call pstdat(ny,nm,nd,1)
+               write(fname,'(4a,i4.4,a)')
+     .           runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
+            endif
           else
-            if ( .not. lspinning_up_sed ) call pstdat(ny,nm,nd,nint(diagfq))
-            write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
-     .        runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,
-     .        '.nc'
+            if ( lspinning_up_sed ) then
+               write(fname,'(4a,i6.6,a,i2.2,a,i2.2,a)')
+     .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,
+     .           '.nc'
+            else
+               call pstdat(ny,nm,nd,nint(diagfq))
+               write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
+     .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,
+     .           '.nc'
           endif
         else
           if (mnproc.eq.1) then

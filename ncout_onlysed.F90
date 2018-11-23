@@ -30,9 +30,7 @@ use mod_dia       , only: diafnm,sigmar1,iotype
 use mo_control_bgc, only: dtbgc, nburst
 use mo_biomod     , only: k0100,k0500,k1000,k2000,k4000
 !use mo_bgcmean   ! FIXME: otherwise collision of GLB_FNAMETAG, ...?
-use mo_sedmnt_offline ! TODO: maybe limit scope (only: GLB_FNAMETAG, ...)?
-                      !       or add this routine to mo_sedmnt_offline.F90
-                      !  or move namelist block from mo_sedmnt_offline.F90 to here
+use mo_sedmnt_offline
 
 implicit none
 
@@ -62,17 +60,22 @@ write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')                               &
    &            nyear0,'-',nmonth0,'-',nday0,' 00:00'
 datenum=time-time0-0.5*diagfq_sed(iogrp)/nstep_in_day
 
-! get file name ! FIXME: we assume .not.append2file(iogrp), see ncout_hamocc.F to extend.
+! get file name
 write (seqstring,'(I0.2)') nburst
-call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp))//"."//seqstring,nstep, &
-   &         filefq_sed(iogrp)/real(nstep_in_day),filemon_sed(iogrp),       &
-   &         fileann_sed(iogrp),fname(iogrp)) ! mod_dia.F
-irec(iogrp)=1
+if (.not.append2file(iogrp)) then
+   call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp))//"."//seqstring,nstep, &
+      &         filefq_sed(iogrp)/real(nstep_in_day),filemon_sed(iogrp),       &
+      &         fileann_sed(iogrp),fname(iogrp))
+   append2file(iogrp)=.true.
+   irec(iogrp)=1
+else
+   irec(iogrp)=irec(iogrp)+1
+endif
 if ( (fileann_sed(iogrp) .or. filemon_sed(iogrp))                       &
    & .or. .not.(fileann_sed(iogrp) .or. filemon_sed(iogrp)) .and.       &
    &  mod(nstep+.5,filefq_sed(iogrp))<2.) then
    append2file(iogrp) = .false.
-endif   ! /FIXME
+endif
 
 ! prepare output fields
 if (mnproc==1) then
