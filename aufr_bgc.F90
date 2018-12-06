@@ -141,19 +141,6 @@
           CALL xchalt('(AUFR: Problem reading date of restart file)')
                  stop '(AUFR: Problem reading date of restart file)'
         ENDIF
-        restyear  = idate(1)
-        restmonth = idate(2)
-        restday   = idate(3)
-        restdtoce = idate(4)
-        ldtbgc = idate(5)
-        WRITE(io_stdo_bgc,*) ' '
-        WRITE(io_stdo_bgc,*) 'Date of bgc restart file : '
-        WRITE(io_stdo_bgc,*) ' year  = ',restyear
-        WRITE(io_stdo_bgc,*) ' month = ',restmonth
-        WRITE(io_stdo_bgc,*) ' day   = ',restday
-        WRITE(io_stdo_bgc,*) ' dtoce = ',restdtoce
-        WRITE(io_stdo_bgc,*) ' dtbgc = ',ldtbgc
-        WRITE(io_stdo_bgc,*) ' '
       ELSE IF(IOTYPE==1) THEN
 #ifdef PNETCDF
         testio=1
@@ -192,12 +179,19 @@
           CALL xchalt('(AUFR: Problem reading date of restart file)')
                  stop '(AUFR: Problem reading date of restart file)'
         ENDIF
-        restyear  = idate(1)
-        restmonth = idate(2)
-        restday   = idate(3)
-        restdtoce = idate(4)
-        ldtbgc = idate(5)
-        IF(mnproc==1) THEN
+#endif
+      if(testio .eq. 0) then
+      CALL xchalt('(AUFR: Problem with namelist iotype)')
+                    stop '(AUFR: Problem with namelist iotype)'
+      endif
+      ENDIF
+
+      restyear  = idate(1)
+      restmonth = idate(2)
+      restday   = idate(3)
+      restdtoce = idate(4)
+      ldtbgc = idate(5)
+      IF(mnproc==1) THEN
         WRITE(io_stdo_bgc,*) ' '
         WRITE(io_stdo_bgc,*) 'Date of bgc restart file : '
         WRITE(io_stdo_bgc,*) ' year  = ',restyear
@@ -206,12 +200,6 @@
         WRITE(io_stdo_bgc,*) ' dtoce = ',restdtoce
         WRITE(io_stdo_bgc,*) ' dtbgc = ',ldtbgc
         WRITE(io_stdo_bgc,*) ' '
-        ENDIF
-#endif
-      if(testio .eq. 0) then
-      CALL xchalt('(AUFR: Problem with namelist iotype)')
-                    stop '(AUFR: Problem with namelist iotype)'
-      endif
       ENDIF
 
 !
