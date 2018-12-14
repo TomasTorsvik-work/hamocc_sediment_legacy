@@ -198,7 +198,7 @@ c --- Namelist
 
 
       subroutine diafnm(runid,runid_len,expcnf,ctag,nstep,diagfq,diagmon
-     .  ,diagann,fname)
+     .  ,diagann,diagdec,diagcen,diagmil,fname)
 c
 c --- ------------------------------------------------------------------
 c --- Description: creates file name for the diagnostic output
@@ -212,6 +212,9 @@ c ---   real time      (in)    : MICOM time step
 c ---   real diagfq    (in)    : diagnostic frequency     
 c ---   logi diagmon   (in)    : switch to show whether diagfq=month 
 c ---   logi diagann   (in)    : switch to show whether diagfq=year 
+c ---   logi diagdec   (in)    : switch to show whether diagfq=decade
+c ---   logi diagcen   (in)    : switch to show whether diagfq=century
+c ---   logi diagmil   (in)    : switch to show whether diagfq=millenium
 c ---   char fname     (out)   : file name 
 c --- ------------------------------------------
 c
@@ -222,7 +225,7 @@ c
       character runid*(*),expcnf*(*),ctag*(*),fname*(*)
       integer runid_len,nstep
       real diagfq
-      logical diagmon,diagann
+      logical diagmon,diagann,diagdec,diagcen,diagmil
 c
       real epsil
       parameter (epsil=1.e-11)
@@ -269,7 +272,7 @@ c
                write(fname,'(4a,i4.4,a,i2.2,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'.nc'
             endif
-          elseif (diagann) then
+          elseif (diagann .or. diagdec .or. diagcen .or. diagmil) then
             if ( lspinning_up_sed ) then
                write(fname,'(4a,i6.6,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
@@ -288,6 +291,7 @@ c
                write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,
      .           '.nc'
+            endif
           endif
         else
           if (mnproc.eq.1) then
@@ -1682,7 +1686,7 @@ c --- create file name
       if (.not.append2file(iogrp)) then
         call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(IOGRP)),
      .  nstep,filefq_phy(iogrp)/real(nstep_in_day),filemon_phy(iogrp),
-     .  fileann_phy(iogrp),fname(iogrp))
+     .  fileann_phy(iogrp),.false.,.false.,.false.,fname(iogrp))
         append2file(iogrp)=.true.
         irec(iogrp)=1
       else

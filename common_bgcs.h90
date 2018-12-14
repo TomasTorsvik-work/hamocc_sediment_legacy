@@ -5,9 +5,9 @@
 ! Also, they written/read to and from restart files.
 ! There are probably more efficient/elegant solutions.
 
-real :: sedlay2,powtra2,burial2
-
 common /bgcs_hamocc/                                                &
    &   sedlay2(idm,jdm,2*ks,nsedtra) ,powtra2(idm,jdm,2*ks,npowtra) &
    &  ,burial2(idm,jdm,2,   nsedtra)
+
+real :: sedlay2,powtra2,burial2
 

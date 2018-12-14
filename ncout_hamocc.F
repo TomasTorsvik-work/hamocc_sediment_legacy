@@ -41,15 +41,20 @@ c --- get file name
       if (.not.append2file(iogrp)) then
          call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp)),nstep,
      .               filefq_bgc(iogrp)/real(nstep_in_day),filemon_bgc(iogrp),
-     .               fileann_bgc(iogrp),fname(iogrp))
+     .               fileann_bgc(iogrp),filedec_bgc(iogrp),filecen_bgc(iogrp),
+     .               filemil_bgc(iogrp),fname(iogrp))
          append2file(iogrp)=.true.
          irec(iogrp)=1
       else
          irec(iogrp)=irec(iogrp)+1
       endif
       if (((fileann_bgc(iogrp).and.nday_of_year.eq.1.or.
+     .  filedec_bgc(iogrp).and.mod(nyear,10).and.nday_of_year.eq.1.or.
+     .  filecen_bgc(iogrp).and.mod(nyear,100).and.nday_of_year.eq.1.or.
+     .  filemil_bgc(iogrp).and.mod(nyear,1000).and.nday_of_year.eq.1.or.
      .  filemon_bgc(iogrp).and.nday.eq.1).and.mod(nstep,nstep_in_day)
-     .  .le.1).or..not.(fileann_bgc(iogrp).or.filemon_bgc(iogrp)).and.
+     .  .le.1).or..not.(filemil_bgc(iogrp).or.filecen_bgc(iogrp).or.
+     .  filedec_bgc(iogrp).or.fileann_bgc(iogrp).or.filemon_bgc(iogrp)).and.
      .  mod(nstep+.5,filefq_bgc(iogrp)).lt.2.) then
         append2file(iogrp)=.false.
       endif
