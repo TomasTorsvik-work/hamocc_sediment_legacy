@@ -85,10 +85,11 @@
       INTEGER           :: i,j
       CHARACTER(LEN=80) :: err_text,rstfnm
 
-      INTEGER ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)                    &
-     &       ,nclatid,nclonid,nclevid,nclev2id,ncksid,ncks2id,ncbur2id  &
-     &       ,nstart2(2),ncount2(2),nstride2(2),idate(5)
-      REAL rmissing
+      integer           :: ncid, ncvarid, ncstat, ncoldmod, ncdimst(4)        &
+         &                ,nclatid=-1, nclonid=-1, nclevid =-1, nclev2id=-1   &
+         &                ,ncksid =-1, ncks2id=-1, ncbur2id=-1                &
+         &                ,nstart2(2), ncount2(2), nstride2(2), idate(5)
+      real              :: rmissing
 #ifdef PNETCDF
       integer*4 ,save :: info=MPI_INFO_NULL
       integer        mpicomm,mpierr,mpireq,mpistat

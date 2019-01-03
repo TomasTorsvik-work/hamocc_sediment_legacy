@@ -35,7 +35,7 @@ subroutine aufw_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
    use mo_sedmnt_offline
    use mo_control_bgc, only: io_stdo_bgc, ldtbgc, rmasko
    use mo_param1_bgc 
-   use mod_xc,         only: itdm,jtdm,mnproc,xchalt
+   use mod_xc,         only: itdm, jtdm, mnproc, xchalt
    use mod_dia,        only: iotype
 
    implicit none
@@ -48,9 +48,10 @@ subroutine aufw_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
 
 ! Local variables
 !
-   integer           :: ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)      &
-  &                    ,nclatid,nclonid,otraid,carkid,timeid         &
-  &                    ,nstart2(2),ncount2(2),nstride2(2),idate(5)
+   integer           :: ncid, ncvarid, ncstat, ncoldmod, ncdimst(4)        &
+      &                ,nclatid=-1, nclonid=-1, otraid=-1, carkid=-1       &
+      &                ,timeid =-1                                         &
+      &                ,nstart2(2), ncount2(2), nstride2(2), idate(5)
    real              :: keqb_one(kpie,kpje)
    real              :: rmissing
 #ifdef PNETCDF
