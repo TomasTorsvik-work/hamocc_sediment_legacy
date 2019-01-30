@@ -302,12 +302,15 @@
             do l = 1, nocetra
                ocetra_kbo(i,j,l) = ocetra(i,j,kbo(i,j),l)
             enddo
+            psao_kbo(i,j) = psao(i,j,kbo(i,j))
+            prho_kbo(i,j) = prho(i,j,kbo(i,j))
+            co3_kbo(i,j) = co3(i,j,kbo(i,j))
          enddo
       enddo
       call sediment_step(kpie, kpje, kpke, pglat, pddpo, pdlxp, pdlyp,  &
-         &               psao, prho, omask,                             &
+         &               psao_kbo, prho_kbo, omask,                             &
          &               ocetra_kbo, bolay, keqb,                       &
-         &               prorca, prcaca, silpro, produs, co3)
+         &               prorca, prcaca, silpro, produs, co3_kbo)
       ! Do not add ocetra back assignment code: we update ocetra directly!
 
 !---------------------------------------------------------------------

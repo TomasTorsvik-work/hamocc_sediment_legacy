@@ -739,9 +739,9 @@ subroutine alloc_mem_sedmnt_offline(kpie, kpje)
    bolay_avg(:,:) = 4000.0 ! maximum of lowest bottom layer thickness
    bolay_clim(:,:,:) = 0.0
 
-   ALLOCATE (bgc_t_kbo_avg(kpie,kpje),stat=errstat)
+   allocate (bgc_t_kbo_avg(kpie,kpje),stat=errstat)
    if(errstat /= 0) stop 'not enough memory bgc_t_kbo_avg'
-   ALLOCATE (bgc_t_kbo_clim(kpie,kpje,12),stat=errstat)
+   allocate (bgc_t_kbo_clim(kpie,kpje,12),stat=errstat)
    if(errstat /= 0) stop 'not enough memory bgc_t_kbo_clim'
    bgc_t_kbo_avg(:,:) = 0.0
    bgc_t_kbo_clim(:,:,:) = 0.0

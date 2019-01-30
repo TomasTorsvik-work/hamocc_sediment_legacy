@@ -11,10 +11,10 @@ c
 #ifdef SED_OFFLINE
       use mo_sedmnt_offline, only: sedmnt_offline, prepare_clim ! subroutines
 #endif
+      use mo_common_bgc
 c
       implicit none
 c
-#include "common_bgc.h"
 #include "common_blocks.h"
 #include "common_clndr.h"
 c

@@ -39,6 +39,10 @@
       
       REAL, DIMENSION (:,:,:,:), ALLOCATABLE :: ocetra
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: ocetra_kbo
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: ptho_kbo
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: psao_kbo
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: prho_kbo
+      REAL, DIMENSION (:,:),     ALLOCATABLE :: co3_kbo
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atm      
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: atmflx
       REAL, DIMENSION (:,:,:),   ALLOCATABLE :: co3
@@ -112,9 +116,38 @@
         if(errstat.ne.0) stop 'not enough memory ocetra'
         ocetra(:,:,:,:) = 0.0
 
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variable ocetra_kbo ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        WRITE(io_stdo_bgc,*)'Forth dimension    : ',nocetra
+        ENDIF
+
         ALLOCATE (ocetra_kbo(kpie,kpje,nocetra),stat=errstat)
         if(errstat.ne.0) stop 'not enough memory ocetra_kbo'
         ocetra_kbo(:,:,:) = 0.0
+
+        IF (mnproc.eq.1) THEN
+        WRITE(io_stdo_bgc,*)'Memory allocation for variables {psao,prho,co3}_kbo ...'
+        WRITE(io_stdo_bgc,*)'First dimension    : ',kpie
+        WRITE(io_stdo_bgc,*)'Second dimension   : ',kpje
+        ENDIF
+
+        ALLOCATE (ptho_kbo(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory ptho_kbo'
+        ptho_kbo(:,:) = 0.0
+
+        ALLOCATE (psao_kbo(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory psao_kbo'
+        psao_kbo(:,:) = 0.0
+
+        ALLOCATE (prho_kbo(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory prho_kbo'
+        prho_kbo(:,:) = 0.0
+
+        ALLOCATE (co3_kbo(kpie,kpje),stat=errstat)
+        if(errstat.ne.0) stop 'not enough memory co3_kbo'
+        co3_kbo(:,:) = 0.0
 
         IF (mnproc.eq.1) THEN
         WRITE(io_stdo_bgc,*)'Memory allocation for variable hi ...'
