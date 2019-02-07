@@ -27,7 +27,7 @@ c
 #include "common_trc.h"
 #include "common_blocks.h"
 c
-      integer       :: nn
+      integer, intent(in) :: nn
       integer       :: i,j,l,nt,kn
       real          :: trbudo(ntrbgc),trbudn,q
 c

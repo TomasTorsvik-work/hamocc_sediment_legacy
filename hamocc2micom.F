@@ -33,7 +33,7 @@ c
 #include "common_bgcs.h"
 #include "common_forc.h"
 c
-      integer       :: m,n,mm,nn
+      integer, intent(in) :: m,n,mm,nn
 c
       integer       :: i,j,k,l,nns,mms,kn,km
 c

@@ -507,7 +507,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
 end subroutine sedmnt_offline
 
 subroutine alloc_mem_sedmnt_offline(kpie, kpje)
-   integer :: kpie, kpje
+   integer, intent(in) :: kpie, kpje
    integer :: errstat, iounit
    logical :: isopen, exists
 
@@ -815,8 +815,6 @@ subroutine ncwrt_onlysed(iogrp)
 
 use mo_bgcmean    , only: inisdm, inibur, accsdm, accbur, wrtsdm, wrtbur, logsdm
 
-implicit none
-
 !#include "common_clndr.h90"
 #include "common_blocks.h90"
 
@@ -959,8 +957,6 @@ nacc_sed(iogrp)=0
 end subroutine ncwrt_onlysed
 
 subroutine vardef_onlysed(iogrp,timeunits,calendar,cmpflg)
-
-implicit none
 
 integer iogrp,cmpflg
 character timeunits*30,calendar*19

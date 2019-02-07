@@ -31,7 +31,7 @@ c
 #include "common_seaice.h"
 #include "common_bgcs.h"
 c
-      integer       :: m,n,mm,nn
+      integer, intent(in) :: m,n,mm,nn
 
       integer       :: i,j,k,l,nns,kn
       real          :: p1,p2,ldp,th,s,pa

@@ -56,9 +56,10 @@
 
       implicit none
 
-      REAL :: pddpo(kpie,kpje,kpke)
-      REAL :: sumsed
-      INTEGER :: kpie,kpje,kpke,i,j,k
+      integer, intent(in) :: kpie,kpje,kpke
+      real, intent(in) :: pddpo(kpie,kpje,kpke)
+      integer :: i,j,k
+      real :: sumsed
 
       if (lspinning_up_sed) then
          dtsed = dtoff
