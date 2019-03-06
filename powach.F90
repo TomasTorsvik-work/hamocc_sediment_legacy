@@ -84,7 +84,7 @@ real, intent(in)     :: prho_(kpie,kpje)
 
 real, intent(in)     :: pdlxp(kpie,kpje), pdlyp(kpie,kpje)
 real, intent(in)     :: bolay_ (kpie,kpje)
-real, intent(inout)  :: ocetra_(kpie,kpje,nocetra)
+real, intent(in)     :: ocetra_(kpie,kpje,nocetra)
 real, intent(in)     :: keqb_  (11,kpie,kpje)
 real, intent(inout)  :: prorca_(kpie,kpje)
 real, intent(inout)  :: prcaca_(kpie,kpje)

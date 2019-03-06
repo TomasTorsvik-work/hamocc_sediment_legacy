@@ -956,10 +956,11 @@ nacc_sed(iogrp)=0
 
 end subroutine ncwrt_onlysed
 
-subroutine vardef_onlysed(iogrp,timeunits,calendar,cmpflg)
+subroutine vardef_onlysed(iogrp, timeunits, calendar, cmpflg)
 
-integer iogrp,cmpflg
-character timeunits*30,calendar*19
+integer, intent(in)           :: iogrp, cmpflg
+character(len=30), intent(in) :: timeunits
+character(len=19), intent(in) :: calendar
 
 call ncdefvar('time','time',ndouble,0)
 call ncattr('long_name','time')

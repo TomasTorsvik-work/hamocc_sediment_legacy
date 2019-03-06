@@ -36,10 +36,11 @@ implicit none
 
 #include <mpif.h>
 
-integer, intent(in) :: ncid, klev, time
-integer :: ndims
+integer, intent(in)          :: ncid, klev, time
 character(len=*), intent(in) :: desc
-real :: arr(idm,jdm,klev)
+real, intent(inout)          :: arr(idm, jdm, klev)
+
+integer :: ndims
 real :: arr_g(itdm,jtdm)
 real, allocatable :: arr_g1(:,:,:), arr_l(:,:)
 integer ncstat, ncvarid, k, i, j
