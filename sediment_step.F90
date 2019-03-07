@@ -1,4 +1,4 @@
-subroutine sediment_step(kpie, kpje, kpke, pglat, pddpo, pdlxp, pdlyp,  &
+subroutine sediment_step(kpie, kpje, kpke, pddpo, pdlxp, pdlyp,         &
    &                     psao_, prho_, omask,                           &
    &                     ocetra_, bolay_, keqb_,                        &
    &                     prorca_, prcaca_, silpro_, produs_, co3_)
@@ -47,7 +47,6 @@ implicit none
 ! Function arguments; see hamocc4bcm.F90 for variable description
 !
 integer, intent(in)  :: kpie,kpje,kpke
-real, intent(in)     :: pglat  (kpie,kpje)
 real, intent(in)     :: pddpo  (kpie,kpje,kpke)
 real, intent(in)     :: pdlxp  (kpie,kpje)
 real, intent(in)     :: pdlyp  (kpie,kpje)

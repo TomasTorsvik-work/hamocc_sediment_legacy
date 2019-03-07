@@ -37,7 +37,7 @@ c
       is_start_of_day = mod(nstep-1,nstep_in_day)==0
 #ifdef SED_OFFLINE
       call sedmnt_offline(idm, jdm, kdm, maxyear_sediment, nstep,
-     .                    pglat, bgc_dp, bgc_dx, bgc_dy, omask)
+     .                    bgc_dp, bgc_dx, bgc_dy, omask)
 #endif
 c
       call hamocc4bcm(idm,jdm,kdm,pglat,bgc_swr,bgc_fice,
@@ -51,7 +51,7 @@ c
       ! accumulate bottom water tracers when in
       ! the last year of MICOM/HAMOCC simulation
       if ( (lsed_wclim .or. lsed_spinup) .and. mod(nyear,maxyear_ocean)==0 ) then
-         call prepare_clim(idm, jdm, kdm, maxyear_sediment, nstep)
+         call prepare_clim(nstep)
       endif
 #endif
 

@@ -44,9 +44,8 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplmon,rstfnm)
 
 ! Local variables
 !
-   integer           :: ncid,ncvarid,ncstat,ncoldmod,ncdimst(4)      &
-  &                    ,nclatid,nclonid,otraid,carkid,timeid         &
-  &                    ,nstart2(2),ncount2(2),nstride2(2)
+   integer           :: ncid, ncvarid, ncstat, ncoldmod, ncdimst(4), &
+      &                 nclatid, nclonid, otraid, carkid, timeid
    real              :: keqb_one(kpie,kpje)
    real              :: rmissing
 #ifdef PNETCDF

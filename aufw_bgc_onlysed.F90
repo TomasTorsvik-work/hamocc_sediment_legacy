@@ -51,7 +51,7 @@ subroutine aufw_bgc_onlysed(kpie,kpje,kpke,kplyear,kplmon,kplday,kpldtoce  &
    integer           :: ncid, ncvarid, ncstat, ncoldmod, ncdimst(4)        &
       &                ,nclatid=-1, nclonid=-1, otraid=-1, carkid=-1       &
       &                ,timeid =-1                                         &
-      &                ,nstart2(2), ncount2(2), nstride2(2), idate(5)
+      &                ,idate(5)
    real              :: keqb_one(kpie,kpje)
    real              :: rmissing
 #ifdef PNETCDF

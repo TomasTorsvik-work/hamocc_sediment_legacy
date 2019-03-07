@@ -205,8 +205,7 @@ private :: updcln_onlysed
 
 contains
 
-subroutine read_clim(nstep)
-   integer, intent(in) :: nstep
+subroutine read_clim()
    integer             :: imonth
 
    ! Read the bottom seawater climatology from the netCDF forcing file
@@ -242,12 +241,10 @@ subroutine read_clim(nstep)
    co3_kbo_avg = 0.0
 end subroutine read_clim
 
-subroutine prepare_clim(kpie, kpje, kpke, maxyear, nstep)
+subroutine prepare_clim(nstep)
    ! Subprogram arguments
    !
-   integer, intent(in)                          :: kpie,kpje,kpke
-   integer, intent(in)                          :: maxyear
-   integer, intent(in)                          :: nstep
+   integer, intent(in) :: nstep
 
    ! Accumulate the bottom seawater fields from HAMOCC
    nstep_in_month  = nstep_in_month + 1
@@ -375,7 +372,7 @@ return
 end subroutine updcln_onlysed
 
 subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
-   &                      pglat, pddpo, pdlxp, pdlyp, omask)
+   &                      pddpo, pdlxp, pdlyp, omask)
 
    ! Arrays needed to update two time levels after the sediment spin-up
    !
@@ -386,7 +383,6 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
    integer, intent(in)                          :: kpie,kpje,kpke
    integer, intent(in)                          :: maxyear
    integer, intent(in)                          :: nstep
-   real, dimension(kpie,kpje), intent(in)       :: pglat
    real, dimension(kpie,kpje,kpke), intent(in)  :: pddpo
    real, dimension(kpie,kpje), intent(in)       :: pdlxp, pdlyp
    real, dimension(kpie,kpje), intent(in)       :: omask
@@ -398,7 +394,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
    ! Read the bottom water climatology
    !
    if (lread_clim) then
-      call read_clim(nstep)      ! Read the bottom water climatology,
+      call read_clim()           ! Read the bottom water climatology,
       lread_clim = .false.       !  but only one time.
    endif
 
@@ -438,7 +434,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
             dtoff = 3600*24*nd_in_m(nmonth)
             call bodensed(kpie,kpje,kpke,pddpo)
 
-            call sediment_step(idm,jdm,kdm,pglat, bgc_dp,bgc_dx,bgc_dy,    &
+            call sediment_step(idm, jdm, kdm, bgc_dp, bgc_dx, bgc_dy,      &
                & bgc_s_kbo_clim(:,:,nmonth), bgc_rho_kbo_clim(:,:,nmonth), &
                & omask,                                                    &
                & ocetra_kbo_clim(:,:,nmonth,:), bolay_clim(:,:,nmonth),    &
@@ -820,8 +816,7 @@ use mo_bgcmean    , only: inisdm, inibur, accsdm, accbur, wrtsdm, wrtbur, logsdm
 
 integer, intent(in) :: iogrp
 
-integer i,j,k,l,nt
-integer nhour,ny,nm,nd,dayfrac,irec(nsedmax),cmpflg
+integer irec(nsedmax), cmpflg
 character(len= 2) seqstring
 character(len=80) fname(nsedmax)
 character(len=20) startdate

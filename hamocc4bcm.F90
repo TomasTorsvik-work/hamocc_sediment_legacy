@@ -307,8 +307,8 @@
             co3_kbo(i,j) = co3(i,j,kbo(i,j))
          enddo
       enddo
-      call sediment_step(kpie, kpje, kpke, pglat, pddpo, pdlxp, pdlyp,  &
-         &               psao_kbo, prho_kbo, omask,                             &
+      call sediment_step(kpie, kpje, kpke, pddpo, pdlxp, pdlyp,         &
+         &               psao_kbo, prho_kbo, omask,                     &
          &               ocetra_kbo, bolay, keqb,                       &
          &               prorca, prcaca, silpro, produs, co3_kbo)
       ! Do not add ocetra back assignment code: we update ocetra directly!
