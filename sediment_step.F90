@@ -1,7 +1,11 @@
 subroutine sediment_step(kpie, kpje, kpke, pddpo, pdlxp, pdlyp,         &
    &                     psao_, prho_, omask,                           &
    &                     ocetra_, bolay_, keqb_,                        &
-   &                     prorca_, prcaca_, silpro_, produs_, co3_)
+   &                     prorca_, prcaca_, silpro_, produs_, co3_,      &
+   &                     jpowaic_, jpowaal_, jpowaph_, jpowaox_,        &
+   &                     jpown2_, jpowno3_, jpowasi_,                   &
+   &                     jssso12_, jssssil_, jsssc12_, jssster_,        &
+   &                     jburssso12_, jbursssc12_, jburssssil_, jburssster_)
 
 !-----------------------------------------------------------------------
 !
@@ -34,6 +38,8 @@ subroutine sediment_step(kpie, kpje, kpke, pddpo, pdlxp, pdlyp,         &
 
 use mod_xc
 use mo_bgcmean
+use mo_sedmnt_offline, only: accsdm_offl, accbur_offl, nsedmax
+!  &                       , jpowaic => jpowaic_ ! passed as argument
 use mo_control_bgc!, only: io_stdo_bgc
 use mo_param1_bgc
 use mo_sedmnt
@@ -61,6 +67,21 @@ real, intent(inout)  :: prcaca_(kpie,kpje)
 real, intent(inout)  :: silpro_(kpie,kpje)
 real, intent(inout)  :: produs_(kpie,kpje)
 real, intent(in)     :: co3_   (kpie,kpje)
+integer, intent(in), optional :: jpowaic_(nsedmax)
+integer, intent(in), optional :: jpowaal_(nsedmax)
+integer, intent(in), optional :: jpowaph_(nsedmax)
+integer, intent(in), optional :: jpowaox_(nsedmax)
+integer, intent(in), optional :: jpown2_ (nsedmax)
+integer, intent(in), optional :: jpowno3_(nsedmax)
+integer, intent(in), optional :: jpowasi_(nsedmax)
+integer, intent(in), optional :: jssso12_(nsedmax)
+integer, intent(in), optional :: jssssil_(nsedmax)
+integer, intent(in), optional :: jsssc12_(nsedmax)
+integer, intent(in), optional :: jssster_(nsedmax)
+integer, intent(in), optional :: jburssso12_(nsedmax)
+integer, intent(in), optional :: jbursssc12_(nsedmax)
+integer, intent(in), optional :: jburssssil_(nsedmax)
+integer, intent(in), optional :: jburssster_(nsedmax)
 
 !-----------------------------------------------------------------------
 ! Sediment module
@@ -90,6 +111,26 @@ CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 ! sediment is shifted every sediment() timestep
 call sedshi(kpie,kpje,omask)
 
+if (lspinning_up_sed) then
+   ! accumulate sediment burial
+   call accbur_offl(jburssso12_,burial(1,1,issso12))
+   call accbur_offl(jburssssil_,burial(1,1,issssil))
+   call accbur_offl(jbursssc12_,burial(1,1,isssc12))
+   call accbur_offl(jburssster_,burial(1,1,issster))
+
+   ! accumulate sediments
+   call accsdm_offl(jpowaic_,powtra(1,1,1,ipowaic))
+   call accsdm_offl(jpowaal_,powtra(1,1,1,ipowaal))
+   call accsdm_offl(jpowaph_,powtra(1,1,1,ipowaph))
+   call accsdm_offl(jpowaox_,powtra(1,1,1,ipowaox))
+   call accsdm_offl(jpown2_ ,powtra(1,1,1,ipown2) )
+   call accsdm_offl(jpowno3_,powtra(1,1,1,ipowno3))
+   call accsdm_offl(jpowasi_,powtra(1,1,1,ipowasi))
+   call accsdm_offl(jssso12_,sedlay(1,1,1,issso12))
+   call accsdm_offl(jssssil_,sedlay(1,1,1,issssil))
+   call accsdm_offl(jsssc12_,sedlay(1,1,1,isssc12))
+   call accsdm_offl(jssster_,sedlay(1,1,1,issster))
+else
 ! accumulate sediments
 call accsdm(jpowaic,powtra(1,1,1,ipowaic))
 call accsdm(jpowaal,powtra(1,1,1,ipowaal))
@@ -108,6 +149,7 @@ call accbur(jburssso12,burial(1,1,issso12))
 call accbur(jburssssil,burial(1,1,issssil))
 call accbur(jbursssc12,burial(1,1,isssc12))
 call accbur(jburssster,burial(1,1,issster))
+endif
 
 !-----------------------------------------------------------------------
 return

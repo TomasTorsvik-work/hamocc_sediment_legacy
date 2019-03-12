@@ -127,7 +127,7 @@ logical, dimension(nsedmax), save :: diagmon_sed, diagann_sed,    &
 
 ! namelist for diagnostic output
 !
-integer, dimension(nsedmax), save ::                                &
+integer, dimension(nsedmax), save, private ::                                &
    & CARFLX_BOT    =0    ,BSIFLX_BOT    =0    ,CALFLX_BOT    =0  ,  &
    & SDM_POWAIC    =0    ,SDM_POWAAL    =0    ,SDM_POWAPH    =0  ,  &
    & SDM_POWAOX    =0    ,SDM_POWN2     =0    ,SDM_POWNO3    =0  ,  &
@@ -137,7 +137,8 @@ integer, dimension(nsedmax), save ::                                &
    & BUR_SSSTER    =0                                            ,  &
    & GLB_AVEPERIO  =0    ,GLB_FILEFREQ  =0    ,GLB_COMPFLAG  =0  ,  &
    & GLB_NCFORMAT  =0    ,GLB_INVENTORY =0
-character(len=10), dimension(nsedmax), save :: GLB_FNAMETAG
+character(len=10), dimension(nsedmax), save, private :: GLB_FNAMETAG
+private :: DIASEDOFFL
 namelist /DIASEDOFFL/                                               &
    & CARFLX_BOT        ,BSIFLX_BOT        ,CALFLX_BOT        ,      &
    & SDM_POWAIC        ,SDM_POWAAL        ,SDM_POWAPH        ,      &
@@ -151,8 +152,8 @@ namelist /DIASEDOFFL/                                               &
 
 ! bottom fluxes
 !
-integer, save :: i_bscoffl_m2d
-integer, dimension(nsedmax), save ::                                 &
+integer, save, protected :: i_bscoffl_m2d
+integer, dimension(nsedmax), save, protected ::                        &
    &          jcarflx_bot = 0 ,                                      &
    &          jbsiflx_bot = 0 ,                                      &
    &          jcalflx_bot = 0
@@ -161,8 +162,8 @@ integer, save :: nsedm2d
 
 ! sediment
 !
-integer, save :: i_bscoffl_sed
-integer, dimension(nsedmax), save ::                                 &
+integer, save, protected :: i_bscoffl_sed
+integer, dimension(nsedmax), save, protected ::                        &
    &          jpowaic = 0 ,                                          &
    &          jpowaal = 0 ,                                          &
    &          jpowaph = 0 ,                                          &
@@ -175,22 +176,22 @@ integer, dimension(nsedmax), save ::                                 &
    &          jsssc12 = 0 ,                                          &
    &          jssster = 0
 
-integer, save :: nsedt_sed
+integer, save, protected :: nsedt_sed
 
 ! burial
 !
-integer, save :: i_bscoffl_bur
-integer, dimension(nsedmax), save ::                                 &
+integer, save, protected :: i_bscoffl_bur
+integer, dimension(nsedmax), save, protected ::                                 &
    &          jburssso12 = 0 ,                                       &
    &          jbursssc12 = 0 ,                                       &
    &          jburssssil = 0 ,                                       &
    &          jburssster = 0
 
-integer, save :: nsedt_bur
+integer, save, protected :: nsedt_bur
 
-real, dimension (:,:,:),   allocatable :: sedm2d
-real, dimension (:,:,:,:), allocatable :: sedt_sed
-real, dimension (:,:,:),   allocatable :: sedt_bur
+real, dimension (:,:,:),   allocatable, protected :: sedm2d
+real, dimension (:,:,:,:), allocatable, protected :: sedt_sed
+real, dimension (:,:,:),   allocatable, protected :: sedt_bur
 
 ! private variables and subprograms
 !
@@ -441,7 +442,11 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
                & keqb_clim(:,:,:,nmonth),                                  &
                & prorca_clim(:,:,nmonth), prcaca_clim(:,:,nmonth),         &
                & silpro_clim(:,:,nmonth), produs_clim(:,:,nmonth),         &
-               & co3_kbo_clim(:,:,nmonth))
+               & co3_kbo_clim(:,:,nmonth),                                 &
+               & jpowaic, jpowaal, jpowaph, jpowaox,                       &
+               & jpown2, jpowno3, jpowasi,                                 &
+               & jssso12, jssssil, jsssc12, jssster,                       &
+               & jburssso12, jbursssc12, jburssssil, jburssster)
 
             ! write monthly output fields
             do n = 1, nsed
@@ -809,9 +814,6 @@ subroutine ncwrt_onlysed(iogrp)
 !
 !-----------------------------------------------------------------------
 
-use mo_bgcmean    , only: inisdm, inibur, accsdm, accbur, wrtsdm, wrtbur, logsdm
-
-!#include "common_clndr.h90"
 #include "common_blocks.h90"
 
 integer, intent(in) :: iogrp
@@ -894,58 +896,58 @@ call ncwrt1('depth','depth',depthslev)
 call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
 
 ! Store sediment fields
-call wrtsdm(jpowaic(iogrp), SDM_POWAIC(iogrp), rnacc*1e3,0., cmpflg,       &
+call wrtsdm_offl(jpowaic(iogrp), SDM_POWAIC(iogrp), rnacc*1e3,0., cmpflg,       &
    &        'powdic','Porewater DIC',       ' ', 'mol C m-3')
-call wrtsdm(jpowaal(iogrp), SDM_POWAAL(iogrp), rnacc*1e3,0., cmpflg,       &
+call wrtsdm_offl(jpowaal(iogrp), SDM_POWAAL(iogrp), rnacc*1e3,0., cmpflg,       &
    &        'powalk','Porewater alkalinity',' ', 'eq m-3')
-call wrtsdm(jpowaph(iogrp), SDM_POWAPH(iogrp), rnacc*1e3,0., cmpflg,       &
+call wrtsdm_offl(jpowaph(iogrp), SDM_POWAPH(iogrp), rnacc*1e3,0., cmpflg,       &
    &        'powpho','Porewater phosphorus',' ', 'mol P m-3')
-call wrtsdm(jpowaox(iogrp), SDM_POWAOX(iogrp), rnacc*1e3,0., cmpflg,       &
+call wrtsdm_offl(jpowaox(iogrp), SDM_POWAOX(iogrp), rnacc*1e3,0., cmpflg,       &
    &        'powox', 'Porewater oxygen',    ' ', 'mol O2 m-3')
-call wrtsdm(jpown2(iogrp),  SDM_POWN2(iogrp),  rnacc*1e3,0., cmpflg,       &
+call wrtsdm_offl(jpown2(iogrp),  SDM_POWN2(iogrp),  rnacc*1e3,0., cmpflg,       &
    &        'pown2', 'Porewater N2',        ' ', 'mol N2 m-3')
-call wrtsdm(jpowno3(iogrp), SDM_POWNO3(iogrp), rnacc*1e3,0., cmpflg,       &
+call wrtsdm_offl(jpowno3(iogrp), SDM_POWNO3(iogrp), rnacc*1e3,0., cmpflg,       &
    &        'powno3','Porewater nitrate',   ' ', 'mol N m-3')
-call wrtsdm(jpowasi(iogrp), SDM_POWASI(iogrp), rnacc*1e3,0., cmpflg,       &
+call wrtsdm_offl(jpowasi(iogrp), SDM_POWASI(iogrp), rnacc*1e3,0., cmpflg,       &
    &        'powsi', 'Porewater silicate',  ' ', 'mol Si m-3')
-call wrtsdm(jssso12(iogrp), SDM_SSSO12(iogrp), rnacc*1e3,0., cmpflg,       &
+call wrtsdm_offl(jssso12(iogrp), SDM_SSSO12(iogrp), rnacc*1e3,0., cmpflg,       &
    &        'ssso12','Sediment detritus',   ' ', 'mol P m-3')
-call wrtsdm(jssssil(iogrp), SDM_SSSSIL(iogrp), rnacc*1e3,0., cmpflg,       &
+call wrtsdm_offl(jssssil(iogrp), SDM_SSSSIL(iogrp), rnacc*1e3,0., cmpflg,       &
    &        'ssssil','Sediment silicate',   ' ', 'mol Si m-3')
-call wrtsdm(jsssc12(iogrp), SDM_SSSC12(iogrp), rnacc*1e3,0., cmpflg,       &
+call wrtsdm_offl(jsssc12(iogrp), SDM_SSSC12(iogrp), rnacc*1e3,0., cmpflg,       &
    &        'sssc12','Sediment CaCO3',      ' ', 'mol C m-3')
-call wrtsdm(jssster(iogrp), SDM_SSSTER(iogrp), rnacc*1e3,0., cmpflg,       &
+call wrtsdm_offl(jssster(iogrp), SDM_SSSTER(iogrp), rnacc*1e3,0., cmpflg,       &
    &        'ssster','Sediment clay',       ' ', 'mol m-3')
 
 ! Store sediment burial fields
-call wrtbur(jburssso12(iogrp),BUR_SSSO12(iogrp),rnacc*1e3,0.,cmpflg,       &
+call wrtbur_offl(jburssso12(iogrp),BUR_SSSO12(iogrp),rnacc*1e3,0.,cmpflg,       &
    & 'buro12','Burial org carbon',' ','mol P m-2')
-call wrtbur(jbursssc12(iogrp),BUR_SSSC12(iogrp),rnacc*1e3,0.,cmpflg,       &
+call wrtbur_offl(jbursssc12(iogrp),BUR_SSSC12(iogrp),rnacc*1e3,0.,cmpflg,       &
    & 'burc12','Burial calcium ',' ','mol C m-2')
-call wrtbur(jburssssil(iogrp),BUR_SSSSIL(iogrp),rnacc*1e3,0.,cmpflg,       &
+call wrtbur_offl(jburssssil(iogrp),BUR_SSSSIL(iogrp),rnacc*1e3,0.,cmpflg,       &
    & 'bursil','Burial silicate',' ','mol Si m-2')
-call wrtbur(jburssster(iogrp),BUR_SSSTER(iogrp),rnacc*1e3,0.,cmpflg,       &
+call wrtbur_offl(jburssster(iogrp),BUR_SSSTER(iogrp),rnacc*1e3,0.,cmpflg,       &
    & 'burter','Burial clay',' ','mol  m-2')
 
 ! close netcdf file
 call ncfcls
 
-call inisdm(jpowaic(iogrp),0.)
-call inisdm(jpowaal(iogrp),0.)
-call inisdm(jpowaph(iogrp),0.)
-call inisdm(jpowaox(iogrp),0.)
-call inisdm(jpown2(iogrp),0.)
-call inisdm(jpowno3(iogrp),0.)
-call inisdm(jpowasi(iogrp),0.)
-call inisdm(jssso12(iogrp),0.)
-call inisdm(jssssil(iogrp),0.)
-call inisdm(jsssc12(iogrp),0.)
-call inisdm(jssster(iogrp),0.)
+call inisdm_offl(jpowaic(iogrp),0.)
+call inisdm_offl(jpowaal(iogrp),0.)
+call inisdm_offl(jpowaph(iogrp),0.)
+call inisdm_offl(jpowaox(iogrp),0.)
+call inisdm_offl(jpown2(iogrp),0.)
+call inisdm_offl(jpowno3(iogrp),0.)
+call inisdm_offl(jpowasi(iogrp),0.)
+call inisdm_offl(jssso12(iogrp),0.)
+call inisdm_offl(jssssil(iogrp),0.)
+call inisdm_offl(jsssc12(iogrp),0.)
+call inisdm_offl(jssster(iogrp),0.)
 
-call inibur(jburssso12(iogrp),0.)
-call inibur(jbursssc12(iogrp),0.)
-call inibur(jburssssil(iogrp),0.)
-call inibur(jburssster(iogrp),0.)
+call inibur_offl(jburssso12(iogrp),0.)
+call inibur_offl(jbursssc12(iogrp),0.)
+call inibur_offl(jburssssil(iogrp),0.)
+call inibur_offl(jburssster(iogrp),0.)
 
 nacc_sed(iogrp)=0
 
@@ -998,6 +1000,275 @@ call ncdefvar3d(BUR_SSSTER(iogrp),cmpflg,'p','burter','Burial clay',' ','mol  m-
 ! enddef netcdf file
 call ncedef
 end subroutine vardef_onlysed
+
+subroutine accsdm_offl(pos,fld)
+!-----------------------------------------------------------------------
+! Description: accumulate sediment fields
+!
+! Arguments:
+!    int  pos      (in)     : position in 3d layer buffer
+!    real fld      (in)     : input data used for accumulation
+!
+! TODO: Generalise accbur*() etc. in mo_bgcmean by passing the arguments
+!       nbgcmax/nsedmax -> nmax, nbgc/nsed -> n, bgct_*/sedt_* -> t_*.
+!       For now we have this separate routine here in mo_sedmnt_offline,
+!       to be used conditionally in sediment_step(). -MvH
+!-----------------------------------------------------------------------
+
+implicit none
+
+integer :: pos(nsedmax)
+real, dimension(idm,jdm,ks) :: fld
+
+integer :: i,j,k,l,o
+
+! check whether field should be accumulated
+do o=1,nsed
+   if (pos(o) == 0) cycle
+
+   do k=1,ks
+!$OMP PARALLEL DO
+      do j=1,jj
+         do l=1,isp(j)
+            do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+               sedt_sed(i,j,k,pos(o))=sedt_sed(i,j,k,pos(o))+fld(i,j,k)
+            enddo
+         enddo
+      enddo
+!$OMP END PARALLEL DO
+   enddo
+enddo
+
+end subroutine accsdm_offl
+
+subroutine accbur_offl(pos,fld)
+!-----------------------------------------------------------------------
+! Description: accumulate sediment burial fields
+!
+! Arguments:
+!    int  pos      (in)     : position in 3d layer buffer
+!    real fld      (in)     : input data used for accumulation
+!-----------------------------------------------------------------------
+
+implicit none
+
+integer :: pos(nsedmax)
+real, dimension(idm,jdm) :: fld
+
+integer :: i,j,l,o
+
+! check whether field should be accumulated
+do o=1,nsed
+   if (pos(o) == 0) cycle
+
+!$OMP PARALLEL DO
+   do j=1,jj
+      do l=1,isp(j)
+         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            sedt_bur(i,j,pos(o))=sedt_bur(i,j,pos(o))+fld(i,j)
+         enddo
+      enddo
+   enddo
+!$OMP END PARALLEL DO
+enddo
+
+end subroutine accbur_offl
+
+subroutine inisdm_offl(pos,inival)
+!-----------------------------------------------------------------------
+!  Description: initialise sediment diagnostic field
+!
+!  Arguments:
+!    int  pos      (in)     : position in common buffer
+!    real inival   (in)     : value used for initalisation
+!-----------------------------------------------------------------------
+
+implicit none
+
+integer, intent(in)  :: pos
+real, intent(in)     :: inival
+
+integer :: i,j,k,l
+
+! check whether field should be initialised
+if (pos == 0) return
+
+do k=1,ks
+!$OMP PARALLEL DO
+   do j=1,jj
+      do l=1,isp(j)
+         do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+            sedt_sed(i,j,k,pos)=inival
+         enddo
+      enddo
+   enddo
+!$OMP END PARALLEL DO
+enddo
+
+end subroutine inisdm_offl
+
+subroutine inibur_offl(pos,inival)
+!-----------------------------------------------------------------------
+!  Description: initialise sediment diagnostic field
+!
+!  Arguments:
+!    int  pos      (in)     : position in common buffer
+!    real inival   (in)     : value used for initalisation
+!-----------------------------------------------------------------------
+
+implicit none
+
+integer, intent(in)  :: pos
+real, intent(in)     :: inival
+
+integer :: i,j,l
+
+! check whether field should be initialised
+if (pos == 0) return
+
+!$OMP PARALLEL DO
+do j=1,jj
+   do l=1,isp(j)
+      do i=max(1,ifp(j,l)),min(ii,ilp(j,l))
+         sedt_bur(i,j,pos)=inival
+      enddo
+   enddo
+enddo
+!$OMP END PARALLEL DO
+
+end subroutine inibur_offl
+
+subroutine wrtsdm_offl(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,vunits)
+!-----------------------------------------------------------------------
+!  Description: writes diagnostic sediment field to file
+!
+!  Arguments:
+!    int  pos      (in)     : variable position in common buffer
+!    int  frmt     (in)     : format/precision of output
+!                             0=field is not written
+!                             2=field is written as int2 with scale
+!                               factor and offset
+!                             4=field is written as real4
+!                             8=field is written as real8
+!    real sfac     (in)     : user def.NE. scale factor to be applied
+!    real offs     (in)     : user def.NE. offset to be added
+!    int  cmpflg   (in)     : compression flag; only wet points are
+!                             written IF flag is set to 1
+!    char vnm      (in)     : variable name used in nc-file
+!    char vlngnm   (in)     : variable long name (skipped IF ' ')
+!    char vstdnm   (in)     : variable standard name (skipped IF ' ')
+!    char vunits   (in)     : variable units (skipped IF ' ')
+!-----------------------------------------------------------------------
+
+implicit none
+
+integer, intent(in) :: pos, frmt, cmpflg
+real, intent(in) ::sfac, offs
+character(len=*), intent(in) :: vnm, vlngnm, vstdnm, vunits
+
+integer :: n
+character(len=100) :: dims
+
+! check whether field should be written
+if (pos == 0 .or. frmt == 0) RETURN
+
+! create dimension string
+if (cmpflg == 1) then
+   dims='pcomp ks time'
+else
+   dims='x y ks time'
+endif
+
+! check output format
+if (frmt == 2) then
+   if (cmpflg == 1) then
+      call nccopa(vnm,dims,sedt_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,offs)
+   else
+      call ncpack(vnm,dims,sedt_sed(1-nbdy,1-nbdy,1,pos),ip,1,sfac,offs)
+   endif
+elseif (frmt == 4) then
+   if (cmpflg == 1) then
+      call nccomp(vnm,dims,sedt_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,4)
+   else
+      call ncwrtr(vnm,dims,sedt_sed(1-nbdy,1-nbdy,1,pos),ip,1,sfac,offs,4)
+   endif
+elseif (frmt == 8) then
+   if (cmpflg == 1) then
+      call nccomp(vnm,dims,sedt_sed(1-nbdy,1-nbdy,1,pos),ip,sfac,offs,8)
+   else
+      call ncwrtr(vnm,dims,sedt_sed(1-nbdy,1-nbdy,1,pos),ip,1,sfac,offs,8)
+   endif
+else
+   STOP 'unknown output format '
+endif
+
+end subroutine wrtsdm_offl
+
+subroutine wrtbur_offl(pos,frmt,sfac,offs,cmpflg,vnm,vlngnm,vstdnm,vunits)
+!-----------------------------------------------------------------------
+!  Description: writes diagnostic sediment burial field to file
+!
+!  Arguments:
+!    int  pos      (in)     : variable position in common buffer
+!    int  frmt     (in)     : format/precision of output
+!                             0=field is not written
+!                             2=field is written as int2 with scale
+!                               factor and offset
+!                             4=field is written as real4
+!                             8=field is written as real8
+!    real sfac     (in)     : user def.NE. scale factor to be applied
+!    real offs     (in)     : user def.NE. offset to be added
+!    int  cmpflg   (in)     : compression flag; only wet points are
+!                             written IF flag is set to 1
+!    char vnm      (in)     : variable name used in nc-file
+!    char vlngnm   (in)     : variable long name (skipped IF ' ')
+!    char vstdnm   (in)     : variable standard name (skipped IF ' ')
+!    char vunits   (in)     : variable units (skipped IF ' ')
+!-----------------------------------------------------------------------
+
+implicit none
+
+integer, intent(in) :: pos, frmt, cmpflg
+real, intent(in) ::sfac, offs
+character(len=*), intent(in) :: vnm, vlngnm, vstdnm, vunits
+
+integer :: n
+character(len=100) :: dims
+
+! check whether field should be written
+if (pos == 0 .or. frmt == 0) RETURN
+
+! create dimension string
+if (cmpflg == 1) then
+   dims='pcomp time'
+else
+   dims='x y time'
+endif
+
+! check output format
+if (frmt == 2) then
+   if (cmpflg == 1) then
+      call nccopa(vnm,dims,sedt_bur(1-nbdy,1-nbdy,pos),ip,sfac,offs)
+   else
+      call ncpack(vnm,dims,sedt_bur(1-nbdy,1-nbdy,pos),ip,1,sfac,offs)
+   endif
+elseif (frmt == 4) then
+   if (cmpflg == 1) then
+      call nccomp(vnm,dims,sedt_bur(1-nbdy,1-nbdy,pos),ip,sfac,offs,4)
+   else
+      call ncwrtr(vnm,dims,sedt_bur(1-nbdy,1-nbdy,pos),ip,1,sfac,offs,4)
+   endif
+elseif (frmt == 8) then
+   if (cmpflg == 1) then
+      call nccomp(vnm,dims,sedt_bur(1-nbdy,1-nbdy,pos),ip,sfac,offs,8)
+   else
+      call ncwrtr(vnm,dims,sedt_bur(1-nbdy,1-nbdy,pos),ip,1,sfac,offs,8)
+   endif
+else
+   STOP 'unknown output format '
+endif
+
+end subroutine wrtbur_offl
 
 end module mo_sedmnt_offline
 #endif

@@ -30,6 +30,7 @@
       IMPLICIT NONE
 
       PRIVATE :: ii,jj,kk,idm,jdm,kdm,nbdy,ifp,isp,ilp                
+      PRIVATE :: nbgct_sed,nbgct_bur,bgct_sed,bgct_bur,i_bsc_m2d,i_bsc_sed,i_bsc_bur
       PUBLIC :: ks,ddm,depthslev,depthslev_bnds
 
 ! --- Averaging and writing frequencies for diagnostic output     
