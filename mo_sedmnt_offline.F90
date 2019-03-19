@@ -425,6 +425,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
       enddo
 
       do nyear = 1, maxyear
+         nyear_global = nyear_global + 1
          if (mnproc == 1) write(io_stdo_bgc,'(a,i6)')                      &
                &         'sedmnt_offline(): nyear_global = ', nyear_global
          do nmonth = 1, 12
@@ -475,8 +476,6 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
                nacc_sed(n) = 0
             endif
          enddo
-
-         nyear_global = nyear_global + 1
       enddo
 
       lspinning_up_sed = .false.

@@ -112,12 +112,6 @@ CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 call sedshi(kpie,kpje,omask)
 
 if (lspinning_up_sed) then
-   ! accumulate sediment burial
-   call accbur_offl(jburssso12_,burial(1,1,issso12))
-   call accbur_offl(jburssssil_,burial(1,1,issssil))
-   call accbur_offl(jbursssc12_,burial(1,1,isssc12))
-   call accbur_offl(jburssster_,burial(1,1,issster))
-
    ! accumulate sediments
    call accsdm_offl(jpowaic_,powtra(1,1,1,ipowaic))
    call accsdm_offl(jpowaal_,powtra(1,1,1,ipowaal))
@@ -130,25 +124,31 @@ if (lspinning_up_sed) then
    call accsdm_offl(jssssil_,sedlay(1,1,1,issssil))
    call accsdm_offl(jsssc12_,sedlay(1,1,1,isssc12))
    call accsdm_offl(jssster_,sedlay(1,1,1,issster))
-else
-! accumulate sediments
-call accsdm(jpowaic,powtra(1,1,1,ipowaic))
-call accsdm(jpowaal,powtra(1,1,1,ipowaal))
-call accsdm(jpowaph,powtra(1,1,1,ipowaph))
-call accsdm(jpowaox,powtra(1,1,1,ipowaox))
-call accsdm(jpown2 ,powtra(1,1,1,ipown2) )
-call accsdm(jpowno3,powtra(1,1,1,ipowno3))
-call accsdm(jpowasi,powtra(1,1,1,ipowasi))
-call accsdm(jssso12,sedlay(1,1,1,issso12))
-call accsdm(jssssil,sedlay(1,1,1,issssil))
-call accsdm(jsssc12,sedlay(1,1,1,isssc12))
-call accsdm(jssster,sedlay(1,1,1,issster))
 
-! accumulate sediment burial
-call accbur(jburssso12,burial(1,1,issso12))
-call accbur(jburssssil,burial(1,1,issssil))
-call accbur(jbursssc12,burial(1,1,isssc12))
-call accbur(jburssster,burial(1,1,issster))
+   ! accumulate sediment burial
+   call accbur_offl(jburssso12_,burial(1,1,issso12))
+   call accbur_offl(jburssssil_,burial(1,1,issssil))
+   call accbur_offl(jbursssc12_,burial(1,1,isssc12))
+   call accbur_offl(jburssster_,burial(1,1,issster))
+else
+   ! accumulate sediments
+   call accsdm(jpowaic,powtra(1,1,1,ipowaic))
+   call accsdm(jpowaal,powtra(1,1,1,ipowaal))
+   call accsdm(jpowaph,powtra(1,1,1,ipowaph))
+   call accsdm(jpowaox,powtra(1,1,1,ipowaox))
+   call accsdm(jpown2 ,powtra(1,1,1,ipown2) )
+   call accsdm(jpowno3,powtra(1,1,1,ipowno3))
+   call accsdm(jpowasi,powtra(1,1,1,ipowasi))
+   call accsdm(jssso12,sedlay(1,1,1,issso12))
+   call accsdm(jssssil,sedlay(1,1,1,issssil))
+   call accsdm(jsssc12,sedlay(1,1,1,isssc12))
+   call accsdm(jssster,sedlay(1,1,1,issster))
+
+   ! accumulate sediment burial
+   call accbur(jburssso12,burial(1,1,issso12))
+   call accbur(jburssssil,burial(1,1,issssil))
+   call accbur(jbursssc12,burial(1,1,isssc12))
+   call accbur(jburssster,burial(1,1,issster))
 endif
 
 !-----------------------------------------------------------------------

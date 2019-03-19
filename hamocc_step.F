@@ -39,6 +39,14 @@ c
       call sedmnt_offline(idm, jdm, kdm, maxyear_sediment, nstep,
      .                    bgc_dp, bgc_dx, bgc_dy, omask)
 #endif
+
+      if (mnproc.eq.1) write(io_stdo_bgc,'(a,i3)')
+     .         'hamocc_step(): nday_of_year = ', nday_of_year
+      if ( nday_of_year==1 .and. is_start_of_day ) then
+         nyear_global = nyear_global + 1
+         if (mnproc.eq.1) write(io_stdo_bgc,'(a,i6)')
+     .            'hamocc_step(): nyear_global = ', nyear_global
+      endif
 c
       call hamocc4bcm(idm,jdm,kdm,pglat,bgc_swr,bgc_fice,
      .            bgc_t,bgc_s,bgc_slp,bgc_rho,bgc_dp,bgc_dx,bgc_dy,
@@ -54,12 +62,6 @@ c
          call prepare_clim(nstep)
       endif
 #endif
-
-      if ( nday_of_year==nday_in_year .and. is_end_of_day ) then
-         nyear_global = nyear_global + 1
-         IF (mnproc.eq.1) WRITE(io_stdo_bgc,*)
-     .            'hamocc_step(): nyear_global = ', nyear_global
-      endif
 c
       call hamocc2micom(m,n,mm,nn)
 c
