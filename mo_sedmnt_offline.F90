@@ -247,6 +247,11 @@ subroutine prepare_clim(nstep)
    !
    integer, intent(in) :: nstep
 
+   if (nyear_global == 0) then
+      write(io_stdo_bgc,*) 'WARNING: Did not begin at the start of a year! &
+         & This should NOT happen, and will result in a broken climatology!'
+   endif
+
    ! Accumulate the bottom seawater fields from HAMOCC
    nstep_in_month  = nstep_in_month + 1
    do iocetra = 1, nocetra
@@ -400,9 +405,12 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
    endif
 
    if ( lsed_spinup .and. lcompleted_clim ) then
+      if (.not. (nmonth==1 .and. nday==1) .and. mnproc==1) then
+         write(io_stdo_bgc,*) 'sedmnt_offline(): WARNING: Not at start of year!'
+      endif
+
       ! increase the off-line sediment integration counter
       nburst = nburst + 1
-
       lspinning_up_sed = .true.
       if (mnproc == 1) write(io_stdo_bgc,'(a,i4)')                         &
          &     'sedmnt_offline(): stand-alone sediment spin-up starting, nburst =', nburst

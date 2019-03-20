@@ -130,6 +130,11 @@
       dtoff = 3600*24*nday_in_year/12  !  time step length [sec].
       ndtdayoff=86400./dtoff           !  time steps per day [No].
       dto=1./ndtdayoff                 !  time step length [days].
+
+      if (.not. (kplmonth==1 .and. kplday==1)) then
+         write(io_stdo_bgc,*) 'WARNING: Not at start of year! The transition &
+            & between stand-alone and coupled sediment will be inconsistent!'
+      endif
 #endif
 
       icyclibgc = kpicycli
