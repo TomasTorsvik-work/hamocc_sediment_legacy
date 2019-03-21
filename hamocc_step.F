@@ -40,8 +40,6 @@ c
      .                    bgc_dp, bgc_dx, bgc_dy, omask)
 #endif
 
-      if (mnproc.eq.1) write(io_stdo_bgc,'(a,i3)')
-     .         'hamocc_step(): nday_of_year = ', nday_of_year
       if ( nday_of_year==1 .and. is_start_of_day ) then
          nyear_global = nyear_global + 1
          if (mnproc.eq.1) write(io_stdo_bgc,'(a,i6)')

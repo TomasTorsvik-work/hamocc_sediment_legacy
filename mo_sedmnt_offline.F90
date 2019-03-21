@@ -115,10 +115,10 @@ real, dimension (:,:,:),   allocatable :: co3_kbo_clim
 
 ! averaging and writing frequencies for diagnostic output
 integer, save      :: nsed
-integer, parameter :: nsedmax = 5
-real,    dimension(nsedmax), save :: diagfq_sed,filefq_sed
-integer, dimension(nsedmax), save :: nacc_sed
-logical, dimension(nsedmax), save :: diagmon_sed, diagann_sed,    &
+!integer, parameter :: nsedmax = 5
+real,    dimension(nbgcmax), save :: diagfq_sed,filefq_sed
+integer, dimension(nbgcmax), save :: nacc_sed
+logical, dimension(nbgcmax), save :: diagmon_sed, diagann_sed,    &
    &                                 diagdec_sed, diagcen_sed,    &
    &                                 diagmil_sed,                 &
    &                                 filemon_sed, fileann_sed,    &
@@ -127,7 +127,7 @@ logical, dimension(nsedmax), save :: diagmon_sed, diagann_sed,    &
 
 ! namelist for diagnostic output
 !
-integer, dimension(nsedmax), save, private ::                                &
+integer, dimension(nbgcmax), save, private ::                                &
    & CARFLX_BOT    =0    ,BSIFLX_BOT    =0    ,CALFLX_BOT    =0  ,  &
    & SDM_POWAIC    =0    ,SDM_POWAAL    =0    ,SDM_POWAPH    =0  ,  &
    & SDM_POWAOX    =0    ,SDM_POWN2     =0    ,SDM_POWNO3    =0  ,  &
@@ -137,7 +137,7 @@ integer, dimension(nsedmax), save, private ::                                &
    & BUR_SSSTER    =0                                            ,  &
    & GLB_AVEPERIO  =0    ,GLB_FILEFREQ  =0    ,GLB_COMPFLAG  =0  ,  &
    & GLB_NCFORMAT  =0    ,GLB_INVENTORY =0
-character(len=10), dimension(nsedmax), save, private :: GLB_FNAMETAG
+character(len=10), dimension(nbgcmax), save, private :: GLB_FNAMETAG
 private :: DIASEDOFFL
 namelist /DIASEDOFFL/                                               &
    & CARFLX_BOT        ,BSIFLX_BOT        ,CALFLX_BOT        ,      &
@@ -153,7 +153,7 @@ namelist /DIASEDOFFL/                                               &
 ! bottom fluxes
 !
 integer, save, protected :: i_bscoffl_m2d
-integer, dimension(nsedmax), save, protected ::                        &
+integer, dimension(nbgcmax), save, protected ::                        &
    &          jcarflx_bot = 0 ,                                      &
    &          jbsiflx_bot = 0 ,                                      &
    &          jcalflx_bot = 0
@@ -163,7 +163,7 @@ integer, save :: nsedm2d
 ! sediment
 !
 integer, save, protected :: i_bscoffl_sed
-integer, dimension(nsedmax), save, protected ::                        &
+integer, dimension(nbgcmax), save, protected ::                        &
    &          jpowaic = 0 ,                                          &
    &          jpowaal = 0 ,                                          &
    &          jpowaph = 0 ,                                          &
@@ -181,7 +181,7 @@ integer, save, protected :: nsedt_sed
 ! burial
 !
 integer, save, protected :: i_bscoffl_bur
-integer, dimension(nsedmax), save, protected ::                                 &
+integer, dimension(nbgcmax), save, protected ::                                 &
    &          jburssso12 = 0 ,                                       &
    &          jbursssc12 = 0 ,                                       &
    &          jburssssil = 0 ,                                       &
@@ -426,7 +426,7 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
       nacc_bgc_2        = nacc_bgc(2)
 
       ! initialise #ts for every group to zero
-      do n = 1, nsedmax
+      do n = 1, nbgcmax
          if (GLB_AVEPERIO(n) /= 0) then
             nacc_sed(n) = 0
          endif
@@ -541,7 +541,7 @@ subroutine alloc_mem_sedmnt_offline(kpie, kpje)
 
    ! determine number of output groups
    nsed = 0
-   do n = 1, nsedmax
+   do n = 1, nbgcmax
       if (GLB_AVEPERIO(n) /= 0) then
          nsed = nsed + 1
       endif
@@ -825,14 +825,14 @@ subroutine ncwrt_onlysed(iogrp)
 
 integer, intent(in) :: iogrp
 
-integer irec(nsedmax), cmpflg
+integer irec(nbgcmax), cmpflg
 character(len= 2) seqstring
-character(len=80) fname(nsedmax)
+character(len=80) fname(nbgcmax)
 character(len=20) startdate
 character(len=30) timeunits
 real datenum,rnacc
-logical append2file(nsedmax)
-data append2file /nsedmax*.false./
+logical append2file(nbgcmax)
+data append2file /nbgcmax*.false./
 save fname,irec,append2file
 
 ! set time information
@@ -1024,7 +1024,7 @@ subroutine accsdm_offl(pos,fld)
 
 implicit none
 
-integer :: pos(nsedmax)
+integer :: pos(nbgcmax)
 real, dimension(idm,jdm,ks) :: fld
 
 integer :: i,j,k,l,o
@@ -1059,7 +1059,7 @@ subroutine accbur_offl(pos,fld)
 
 implicit none
 
-integer :: pos(nsedmax)
+integer :: pos(nbgcmax)
 real, dimension(idm,jdm) :: fld
 
 integer :: i,j,l,o
