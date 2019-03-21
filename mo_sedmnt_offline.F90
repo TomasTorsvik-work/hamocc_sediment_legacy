@@ -81,7 +81,7 @@ use mo_common_bgc
 use mod_dia,        only: ddm,depthslev,depthslev_bnds,nstepinday,pbath &
    &                    , diafnm,iotype
 use mod_nctools
-use mo_bgcmean,     only: nacc_bgc
+use mo_bgcmean,     only: nacc_bgc, nbgcmax
 
 implicit none
 
