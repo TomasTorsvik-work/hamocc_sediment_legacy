@@ -857,11 +857,14 @@ if (.not.append2file(iogrp)) then
 else
    irec(iogrp)=irec(iogrp)+1
 endif
-if ( (filemil_sed(iogrp) .or. filecen_sed(iogrp) .or. filemil_sed(iogrp) .or. &
+if ( (filedec_sed(iogrp) .or. filecen_sed(iogrp) .or. filemil_sed(iogrp) .or. &
    &  fileann_sed(iogrp) .or. filemon_sed(iogrp))                             &
    & .or. .not.(fileann_sed(iogrp) .or. filemon_sed(iogrp)) .and.             &
    &  mod(nstep+.5,filefq_sed(iogrp))<2.) then
    append2file(iogrp) = .false.
+endif
+if ( trim(fname(iogrp)) == "" .and. mnproc==1 ) then
+   write (lp,'(a,i2,a)') 'ERROR: The filename fname(',iogrp,') is empty!'
 endif
 
 ! prepare output fields
