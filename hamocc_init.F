@@ -4,6 +4,7 @@ c initialisation of HAMOCC
 c
       use mod_xc
       use mo_param1_bgc, only: ks,nsedtra,npowtra
+      use mo_common_bgc
 #ifdef DIFFAT
       use mo_satm
 #endif
@@ -11,7 +12,6 @@ c
       implicit none
 c
 #include "param_trc.h"
-#include "common_bgc.h"
 #include "common_bgcs.h"
 #include "common_blocks.h"
 #include "common_clndr.h"

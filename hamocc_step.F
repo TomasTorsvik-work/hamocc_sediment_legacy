@@ -40,7 +40,8 @@ c
      .                    bgc_dp, bgc_dx, bgc_dy, omask)
 #endif
 
-      if ( nday_of_year==1 .and. is_start_of_day ) then
+      ! January 2 to make it work with MICOM clock for a startup run
+      if ( nday_of_year==2 .and. is_start_of_day ) then
          nyear_global = nyear_global + 1
          if (mnproc.eq.1) write(io_stdo_bgc,'(a,i6)')
      .            'hamocc_step(): nyear_global = ', nyear_global
@@ -56,7 +57,8 @@ c
 #ifdef SED_OFFLINE
       ! accumulate bottom water tracers when in
       ! the last year of MICOM/HAMOCC simulation
-      if ( (lsed_wclim .or. lsed_spinup) .and. mod(nyear,maxyear_ocean)==0 ) then
+      if ( (lsed_wclim .or. lsed_spinup) .and. mod(nyear,maxyear_ocean)==0
+     .     .and. .not. nyear_global==0 ) then
          call prepare_clim(nstep)
       endif
 #endif
