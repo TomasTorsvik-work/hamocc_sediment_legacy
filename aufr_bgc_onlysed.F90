@@ -68,7 +68,7 @@ subroutine aufr_bgc_onlysed(kpie,kpje,kpke,kplmon,rstfnm)
 !
    IF(mnproc==1 .AND. IOTYPE==0) THEN
 
-      write(io_stdo_bgc,*) 'Read month ', kplmon, ' from ', rstfnm
+      write(io_stdo_bgc,'(a,i2,a,a)') 'Read month ', kplmon, ' from ', rstfnm
       ncstat = nf90_open(rstfnm, nf90_nowrite, ncid)
       IF ( ncstat /= NF90_NOERR ) THEN
         call xchalt('aufr_bgc_onlysed(): Problem with opening climatology')

@@ -131,10 +131,9 @@
       ndtdayoff=86400./dtoff           !  time steps per day [No].
       dto=1./ndtdayoff                 !  time step length [days].
 
-      if (.not. (kplmonth==1 .and. kplday<=2 .and. lsed_rclim==.true.)) then
-         write(io_stdo_bgc,*) 'WARNING: Not at start of year! &
-            &                  The transition between stand-alone and'
-         write(io_stdo_bgc,*) 'coupled sediment will be inconsistent!'
+      if (lsed_rclim .and. .not. (kplmonth==1 .and. kplday<=2)) then
+         write(io_stdo_bgc,*) 'WARNING: Not at start of year!  The transition between'
+         write(io_stdo_bgc,*) 'stand-alone and coupled sediment will be inconsistent!'
       endif
 #endif
 

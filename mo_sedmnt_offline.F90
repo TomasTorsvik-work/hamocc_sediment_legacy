@@ -199,7 +199,6 @@ integer, private :: i,j,iocetra,n
 character(len = *), parameter, private :: bscfnmbase = "bottom_seawater_clim"
 character(len =30),            private :: bscfnm
 character(len = 4),            private :: seqstring
-integer, private :: nday_of_month ! current day of month
 
 private :: read_clim
 private :: updcln_onlysed
@@ -211,7 +210,7 @@ subroutine read_clim()
 
    ! Read the bottom seawater climatology from the netCDF forcing file
    if (mnproc == 1) write(io_stdo_bgc,*)                             &
-      &        'hamocc_step(): starting bottom seawater climatology read loop'
+      &        'read_clim(): starting bottom seawater climatology read loop'
    do imonth = 1,12
       bscfnm = bscfnmbase//".read.nc"
       call aufr_bgc_onlysed(idm,jdm,kdm,imonth,bscfnm)
@@ -274,17 +273,11 @@ subroutine prepare_clim(nstep)
    keqb_avg  = keqb_avg  + keqb
    !bolay_avg = bolay_avg + bolay
 
-   ! Calculate the day of month
-   nday_of_month = nday_of_year
-   do i = 1, nmonth - 1
-      nday_of_month = nday_of_month - nd_in_m(i)
-   enddo
-
-   if ( nday_of_month==nd_in_m(nmonth) .and. is_end_of_day ) then
+   if ( nday==nd_in_m(nmonth) .and. is_end_of_day ) then
 
       ! Calculate tracer monthly average
       if (mnproc == 1) write(io_stdo_bgc,*)                             &
-         &  'hamocc_step(): end of month, set tracer avg for last month'
+         &  'prepare_clim(): end of month, set tracer avg for last month'
       ocetra_kbo_avg = ocetra_kbo_avg / nstep_in_month
       !bolay_avg = bolay_avg / nstep_in_month
       keqb_avg = keqb_avg / nstep_in_month
