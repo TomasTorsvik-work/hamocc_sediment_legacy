@@ -246,6 +246,15 @@ subroutine prepare_clim(nstep)
    !
    integer, intent(in) :: nstep
 
+   ! Local variables
+   !
+   integer :: cyear, cmonth, cday   ! date used in the climatology
+
+   cyear  = nyear
+   cmonth = nmonth
+   cday   = nday
+   call pstdat(cyear, cmonth, cday, 1)
+
    if (nyear_global == 0) then
       write(io_stdo_bgc,*) 'WARNING: Did not begin at the start of a year! &
          & This should NOT happen, and will result in a broken climatology!'
@@ -273,7 +282,7 @@ subroutine prepare_clim(nstep)
    keqb_avg  = keqb_avg  + keqb
    !bolay_avg = bolay_avg + bolay
 
-   if ( nday==nd_in_m(nmonth) .and. is_end_of_day ) then
+   if ( cday==nd_in_m(cmonth) .and. is_end_of_day ) then
 
       ! Calculate tracer monthly average
       if (mnproc == 1) write(io_stdo_bgc,*)                             &
@@ -298,26 +307,26 @@ subroutine prepare_clim(nstep)
 
       ! Write tracer monthly averages to netCDF file
       if (lsed_wclim) then
-         write (seqstring,'(I0.4)') nyear
+         write (seqstring,'(I0.4)') cyear
          bscfnm = bscfnmbase//"."//seqstring//".nc"
-         call aufw_bgc_onlysed(idm,jdm,kdm,nyear,nmonth,nday,nstep,bscfnm)
+         call aufw_bgc_onlysed(idm,jdm,kdm,cyear,cmonth,cday,nstep,bscfnm)
       endif
 
       if (lsed_spinup) then
          ! Save averages of last month in climatology matrix
-         ocetra_kbo_clim(:,:,:,nmonth) = ocetra_kbo_avg
-         bolay_clim(:,:,nmonth) = bolay_avg
-         keqb_clim(:,:,:,nmonth) = keqb_avg
-         prorca_clim(:,:,nmonth) = prorca_avg
-         prcaca_clim(:,:,nmonth) = prcaca_avg
-         silpro_clim(:,:,nmonth) = silpro_avg
-         produs_clim(:,:,nmonth) = produs_avg
-         bgc_t_kbo_clim(:,:,nmonth) = bgc_t_kbo_avg
-         bgc_s_kbo_clim(:,:,nmonth) = bgc_s_kbo_avg
-         bgc_rho_kbo_clim(:,:,nmonth) = bgc_rho_kbo_avg
-         co3_kbo_clim(:,:,nmonth) = co3_kbo_avg
+         ocetra_kbo_clim(:,:,:,cmonth) = ocetra_kbo_avg
+         bolay_clim(:,:,cmonth) = bolay_avg
+         keqb_clim(:,:,:,cmonth) = keqb_avg
+         prorca_clim(:,:,cmonth) = prorca_avg
+         prcaca_clim(:,:,cmonth) = prcaca_avg
+         silpro_clim(:,:,cmonth) = silpro_avg
+         produs_clim(:,:,cmonth) = produs_avg
+         bgc_t_kbo_clim(:,:,cmonth) = bgc_t_kbo_avg
+         bgc_s_kbo_clim(:,:,cmonth) = bgc_s_kbo_avg
+         bgc_rho_kbo_clim(:,:,cmonth) = bgc_rho_kbo_avg
+         co3_kbo_clim(:,:,cmonth) = co3_kbo_avg
 
-         if ( nmonth == 12 ) then ! we have a complete climatology
+         if ( cmonth == 12 ) then ! we have a complete climatology
             lcompleted_clim = .true.
          endif
       endif
