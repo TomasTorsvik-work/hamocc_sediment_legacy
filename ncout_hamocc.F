@@ -58,6 +58,10 @@ c --- get file name
      .  mod(nstep+.5,filefq_bgc(iogrp)).lt.2.) then
         append2file(iogrp)=.false.
       endif
+      if ( trim(fname(iogrp)) == "" .and. mnproc==1 ) then
+         write (lp,'(a,i2,a)') 'ERROR in ncwrt_bgc():
+     .                          The filename fname(',iogrp,') is empty!'
+      endif
 c
 c --- prepare output fields 
       if (mnproc.eq.1) then 

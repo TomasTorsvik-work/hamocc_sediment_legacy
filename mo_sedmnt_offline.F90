@@ -78,8 +78,8 @@ use mo_biomod,      only: kbo, bolay, wpoc, wmin, wmax, wdust        &
    &                    , wlin, wopal, wcal
 use mod_xc
 use mo_common_bgc
-use mod_dia,        only: ddm,depthslev,depthslev_bnds,nstepinday,pbath &
-   &                    , diafnm,iotype
+use mod_dia,        only: ddm, depthslev, depthslev_bnds             &
+   &                    , diafnm, iotype
 use mod_nctools
 use mo_bgcmean,     only: nacc_bgc, nbgcmax
 
@@ -116,7 +116,7 @@ real, dimension (:,:,:),   allocatable :: co3_kbo_clim
 ! averaging and writing frequencies for diagnostic output
 integer, save      :: nsed
 !integer, parameter :: nsedmax = 5
-real,    dimension(nbgcmax), save :: diagfq_sed,filefq_sed
+real,    dimension(nbgcmax), save :: filefq_sed
 integer, dimension(nbgcmax), save :: nacc_sed
 logical, dimension(nbgcmax), save :: diagmon_sed, diagann_sed,    &
    &                                 diagdec_sed, diagcen_sed,    &
@@ -567,10 +567,12 @@ subroutine alloc_mem_sedmnt_offline(kpie, kpje)
       elseif (GLB_AVEPERIO(n) == 365000) then
          diagmil_sed(n) = .true.
       endif
-      if (GLB_FILEFREQ(n) < 0) then
-         filefq_sed(n)=-real(nstepinday)/GLB_FILEFREQ(n)
+      if (GLB_FILEFREQ(n) < 30) then
+         write (lp,'(a,i2,a)') 'ERROR in alloc_mem_sedmnt_offline():             &
+            & GLB_FILEFREQ(',n,') is smaller than off-line timestep of 1 month.'
+         filefq_sed(n) = 1
       else
-         filefq_sed(n)=nstepinday*max(1,GLB_FILEFREQ(n))
+         filefq_sed(n) = max(1,GLB_FILEFREQ(n))/30
       endif
       filemon_sed(n) = .false.
       fileann_sed(n) = .false.
@@ -833,9 +835,9 @@ character(len=80) fname(nbgcmax)
 character(len=20) startdate
 character(len=30) timeunits
 real datenum,rnacc
-logical append2file(nbgcmax)
-data append2file /nbgcmax*.false./
-save fname,irec,append2file
+logical append2file_sed(nbgcmax)
+data append2file_sed /nbgcmax*.false./
+save fname,irec,append2file_sed
 
 ! set time information
 timeunits=' '
@@ -845,28 +847,31 @@ write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)')                           &
    &            'days since ',min(1800,nyear0),'-',1,'-',1,' 00:00'
 write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')                               &
    &            nyear0,'-',nmonth0,'-',nday0,' 00:00'
-datenum=time-time0-0.5*diagfq_sed(iogrp)/nstep_in_day
+datenum=time-time0-0.5*filefq_sed(iogrp)*30
 
 ! get file name
 write (seqstring,'(I0.2)') nburst
-if (.not.append2file(iogrp)) then
+if (.not.append2file_sed(iogrp)) then
    call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp))//"."//seqstring,nstep, &
-      &        filefq_sed(iogrp)/real(nstep_in_day),filemon_sed(iogrp),       &
+      &        filefq_sed(iogrp)*30,filemon_sed(iogrp),       &
       &        fileann_sed(iogrp),filedec_sed(iogrp),filecen_sed(iogrp),      &
       &        filemil_sed(iogrp),fname(iogrp))
-   append2file(iogrp)=.true.
+   append2file_sed(iogrp)=.true.
    irec(iogrp)=1
 else
    irec(iogrp)=irec(iogrp)+1
 endif
 if ( (filedec_sed(iogrp) .or. filecen_sed(iogrp) .or. filemil_sed(iogrp) .or. &
    &  fileann_sed(iogrp) .or. filemon_sed(iogrp))                             &
-   & .or. .not.(fileann_sed(iogrp) .or. filemon_sed(iogrp)) .and.             &
-   &  mod(nstep+.5,filefq_sed(iogrp))<2.) then
-   append2file(iogrp) = .false.
+   & .or. .not.(fileann_sed(iogrp) .or. filemon_sed(iogrp) .or.               &
+   &            filedec_sed(iogrp) .or. filecen_sed(iogrp) .or.               &
+   &            filemil_sed(iogrp)) .and.                                     &
+   &  mod(nyear+12*nmonth+.5,filefq_sed(iogrp))<2.) then
+   append2file_sed(iogrp) = .false.
 endif
 if ( trim(fname(iogrp)) == "" .and. mnproc==1 ) then
-   write (lp,'(a,i2,a)') 'ERROR: The filename fname(',iogrp,') is empty!'
+   write (lp,'(a,i2,a)') 'ERROR in ncwrt_onlysed():                           &
+      &                   The filename fname(',iogrp,') is empty!'
 endif
 
 ! prepare output fields
