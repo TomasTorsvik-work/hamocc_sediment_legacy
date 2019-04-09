@@ -26,6 +26,13 @@ subroutine sediment_step(kpie, kpje, kpke, pddpo, pdlxp, pdlyp,         &
 ! spin-up or full MICOM/HAMOCC.  Then execute the sediment routines
 ! powach(), sedshi(), accsdm() and accbur().
 !
+! Known issues:
+!
+! Building may fail, because the routine has OPTIONAL arguments whereas
+! it is not in an INTERFACE.  This routine should be included in a
+! module or an explicit interface must be defined.  Work-around is to do
+! a clean_build before build -MvH (201904).
+!
 ! History:
 !
 ! The sediment model is originally based on Heinze, Maier-Reimer,

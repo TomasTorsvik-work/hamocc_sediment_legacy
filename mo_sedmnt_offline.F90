@@ -116,7 +116,7 @@ real, dimension (:,:,:),   allocatable :: co3_kbo_clim
 ! averaging and writing frequencies for diagnostic output
 integer, save      :: nsed
 !integer, parameter :: nsedmax = 5
-real,    dimension(nbgcmax), save :: filefq_sed
+real,    dimension(nbgcmax), save :: diagfq_sed, filefq_sed
 integer, dimension(nbgcmax), save :: nacc_sed
 logical, dimension(nbgcmax), save :: diagmon_sed, diagann_sed,    &
    &                                 diagdec_sed, diagcen_sed,    &
@@ -467,7 +467,6 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
                      call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
                   endif
                   call ncwrt_onlysed(n)
-                  nacc_sed(n)=0
                endif
             enddo
 
@@ -483,7 +482,6 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
                   call INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
                endif
                call ncwrt_onlysed(n)
-               nacc_sed(n) = 0
             endif
          enddo
       enddo
@@ -551,6 +549,7 @@ subroutine alloc_mem_sedmnt_offline(kpie, kpje)
 
    do n = 1, nsed
       GLB_FILEFREQ(n) = max(GLB_AVEPERIO(n), GLB_FILEFREQ(n))
+      diagfq_sed(n) = max(1,GLB_AVEPERIO(n)/30)
       diagmon_sed(n) = .false.
       diagann_sed(n) = .false.
       diagdec_sed(n) = .false.
@@ -572,7 +571,7 @@ subroutine alloc_mem_sedmnt_offline(kpie, kpje)
             & GLB_FILEFREQ(',n,') is smaller than off-line timestep of 1 month.'
          filefq_sed(n) = 1
       else
-         filefq_sed(n) = max(1,GLB_FILEFREQ(n))/30
+         filefq_sed(n) = max(1,GLB_FILEFREQ(n)/30)
       endif
       filemon_sed(n) = .false.
       fileann_sed(n) = .false.
@@ -847,7 +846,7 @@ write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)')                           &
    &            'days since ',min(1800,nyear0),'-',1,'-',1,' 00:00'
 write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')                               &
    &            nyear0,'-',nmonth0,'-',nday0,' 00:00'
-datenum=time-time0-0.5*filefq_sed(iogrp)*30
+datenum=time-time0-0.5*diagfq_sed(iogrp)*30
 
 ! get file name
 write (seqstring,'(I0.2)') nburst
@@ -861,9 +860,12 @@ if (.not.append2file_sed(iogrp)) then
 else
    irec(iogrp)=irec(iogrp)+1
 endif
-if ( (filedec_sed(iogrp) .or. filecen_sed(iogrp) .or. filemil_sed(iogrp) .or. &
-   &  fileann_sed(iogrp) .or. filemon_sed(iogrp))                             &
-   & .or. .not.(fileann_sed(iogrp) .or. filemon_sed(iogrp) .or.               &
+if ( (filemon_sed(iogrp) .or. (                                               &
+   &  fileann_sed(iogrp) .or.                                                 &
+   &  filedec_sed(iogrp) .and. mod(nyear,  10)==0 .or.                        &
+   &  filecen_sed(iogrp) .and. mod(nyear, 100)==0 .or.                        &
+   &  filemil_sed(iogrp) .and. mod(nyear,1000)==0    ) .and. nmonth==13)      &
+   & .or. .not.(filemon_sed(iogrp) .or. fileann_sed(iogrp) .or.               &
    &            filedec_sed(iogrp) .or. filecen_sed(iogrp) .or.               &
    &            filemil_sed(iogrp)) .and.                                     &
    &  mod(nyear+12*nmonth+.5,filefq_sed(iogrp))<2.) then

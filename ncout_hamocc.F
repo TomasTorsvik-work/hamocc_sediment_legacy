@@ -49,9 +49,9 @@ c --- get file name
          irec(iogrp)=irec(iogrp)+1
       endif
       if (((fileann_bgc(iogrp).and.nday_of_year.eq.1.or.
-     .  filedec_bgc(iogrp).and.mod(nyear,10).and.nday_of_year.eq.1.or.
-     .  filecen_bgc(iogrp).and.mod(nyear,100).and.nday_of_year.eq.1.or.
-     .  filemil_bgc(iogrp).and.mod(nyear,1000).and.nday_of_year.eq.1.or.
+     .  filedec_bgc(iogrp).and.mod(nyear,10).eq.0.and.nday_of_year.eq.1.or.
+     .  filecen_bgc(iogrp).and.mod(nyear,100).eq.0.and.nday_of_year.eq.1.or.
+     .  filemil_bgc(iogrp).and.mod(nyear,1000).eq.0.and.nday_of_year.eq.1.or.
      .  filemon_bgc(iogrp).and.nday.eq.1).and.mod(nstep,nstep_in_day)
      .  .le.1).or..not.(filemil_bgc(iogrp).or.filecen_bgc(iogrp).or.
      .  filedec_bgc(iogrp).or.fileann_bgc(iogrp).or.filemon_bgc(iogrp)).and.
