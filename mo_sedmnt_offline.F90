@@ -841,7 +841,6 @@ save fname,irec,append2file_sed
 ! set time information
 timeunits=' '
 startdate=' '
-fname=' '
 write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)')                           &
    &            'days since ',min(1800,nyear0),'-',1,'-',1,' 00:00'
 write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')                               &
@@ -864,7 +863,7 @@ if ( (filemon_sed(iogrp) .or. (                                               &
    &  fileann_sed(iogrp) .or.                                                 &
    &  filedec_sed(iogrp) .and. mod(nyear,  10)==0 .or.                        &
    &  filecen_sed(iogrp) .and. mod(nyear, 100)==0 .or.                        &
-   &  filemil_sed(iogrp) .and. mod(nyear,1000)==0    ) .and. nmonth==13)      &
+   &  filemil_sed(iogrp) .and. mod(nyear,1000)==0    ) .and. nmonth>=12)      &
    & .or. .not.(filemon_sed(iogrp) .or. fileann_sed(iogrp) .or.               &
    &            filedec_sed(iogrp) .or. filecen_sed(iogrp) .or.               &
    &            filemil_sed(iogrp)) .and.                                     &
@@ -873,7 +872,7 @@ if ( (filemon_sed(iogrp) .or. (                                               &
 endif
 if ( trim(fname(iogrp)) == "" .and. mnproc==1 ) then
    write (lp,'(a,i2,a)') 'ERROR in ncwrt_onlysed():                           &
-      &                   The filename fname(',iogrp,') is empty!'
+      &  The filename fname(',iogrp,') is empty!'
 endif
 
 ! prepare output fields

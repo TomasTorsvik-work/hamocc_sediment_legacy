@@ -30,7 +30,6 @@ c
 c --- set time information
       timeunits=' '
       startdate=' '
-      fname=' ' 
       write(timeunits,'(a11,i4.4,a1,i2.2,a1,i2.2,a6)')
      . 'days since ',min(1800,nyear0),'-',1,'-',1,' 00:00'
       write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')

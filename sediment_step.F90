@@ -29,9 +29,9 @@ subroutine sediment_step(kpie, kpje, kpke, pddpo, pdlxp, pdlyp,         &
 ! Known issues:
 !
 ! Building may fail, because the routine has OPTIONAL arguments whereas
-! it is not in an INTERFACE.  This routine should be included in a
-! module or an explicit interface must be defined.  Work-around is to do
-! a clean_build before build -MvH (201904).
+! it is not in an INTERFACE.  This routine should be included in a module
+! (e.g. modernised mo_sedmnt) or an explicit interface must be defined.
+! Work-around is to do a clean_build before build -MvH (201904).
 !
 ! History:
 !
