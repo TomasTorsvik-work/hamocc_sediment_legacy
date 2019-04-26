@@ -153,7 +153,7 @@
       nstep_in_month = 0
 #endif
       nburst = 0
-      nyear_global = 0
+      nyear_global = nyear
 
       CALL ALLOC_MEM_BGCMEAN(kpie,kpje,kpke)
 
