@@ -198,7 +198,6 @@ real, dimension (:,:,:),   allocatable, protected :: sedt_bur
 integer, private :: i,j,iocetra,n
 character(len = *), parameter, private :: bscfnmbase = "bottom_seawater_clim"
 character(len =30),            private :: bscfnm
-character(len = 4),            private :: seqstring
 
 private :: read_clim
 private :: updcln_onlysed
@@ -248,12 +247,7 @@ subroutine prepare_clim(nstep)
 
    ! Local variables
    !
-   integer :: cyear, cmonth, cday   ! date used in the climatology
-
-   cyear  = nyear
-   cmonth = nmonth
-   cday   = nday
-   call pstdat(cyear, cmonth, cday, 1)
+   character(len = 4) :: seqstring_year
 
    if (nyear_global == 0) then
       write(io_stdo_bgc,*) 'WARNING: Did not begin at the start of a year! &
@@ -282,7 +276,7 @@ subroutine prepare_clim(nstep)
    keqb_avg  = keqb_avg  + keqb
    !bolay_avg = bolay_avg + bolay
 
-   if ( cday==nd_in_m(cmonth) .and. is_end_of_day ) then
+   if ( nday==nd_in_m(nmonth) .and. is_end_of_day ) then
 
       ! Calculate tracer monthly average
       if (mnproc == 1) write(io_stdo_bgc,*)                             &
@@ -307,26 +301,26 @@ subroutine prepare_clim(nstep)
 
       ! Write tracer monthly averages to netCDF file
       if (lsed_wclim) then
-         write (seqstring,'(I0.4)') cyear
-         bscfnm = bscfnmbase//"."//seqstring//".nc"
-         call aufw_bgc_onlysed(idm,jdm,kdm,cyear,cmonth,cday,nstep,bscfnm)
+         write (seqstring_year,'(I0.4)') nyear
+         bscfnm = bscfnmbase//"."//seqstring_year//".nc"
+         call aufw_bgc_onlysed(idm,jdm,kdm,nyear,nmonth,nday,nstep,bscfnm)
       endif
 
       if (lsed_spinup) then
          ! Save averages of last month in climatology matrix
-         ocetra_kbo_clim(:,:,:,cmonth) = ocetra_kbo_avg
-         bolay_clim(:,:,cmonth) = bolay_avg
-         keqb_clim(:,:,:,cmonth) = keqb_avg
-         prorca_clim(:,:,cmonth) = prorca_avg
-         prcaca_clim(:,:,cmonth) = prcaca_avg
-         silpro_clim(:,:,cmonth) = silpro_avg
-         produs_clim(:,:,cmonth) = produs_avg
-         bgc_t_kbo_clim(:,:,cmonth) = bgc_t_kbo_avg
-         bgc_s_kbo_clim(:,:,cmonth) = bgc_s_kbo_avg
-         bgc_rho_kbo_clim(:,:,cmonth) = bgc_rho_kbo_avg
-         co3_kbo_clim(:,:,cmonth) = co3_kbo_avg
+         ocetra_kbo_clim(:,:,:,nmonth) = ocetra_kbo_avg
+         bolay_clim(:,:,nmonth) = bolay_avg
+         keqb_clim(:,:,:,nmonth) = keqb_avg
+         prorca_clim(:,:,nmonth) = prorca_avg
+         prcaca_clim(:,:,nmonth) = prcaca_avg
+         silpro_clim(:,:,nmonth) = silpro_avg
+         produs_clim(:,:,nmonth) = produs_avg
+         bgc_t_kbo_clim(:,:,nmonth) = bgc_t_kbo_avg
+         bgc_s_kbo_clim(:,:,nmonth) = bgc_s_kbo_avg
+         bgc_rho_kbo_clim(:,:,nmonth) = bgc_rho_kbo_avg
+         co3_kbo_clim(:,:,nmonth) = co3_kbo_avg
 
-         if ( cmonth == 12 ) then ! we have a complete climatology
+         if ( nmonth == 12 ) then ! we have a complete climatology
             lcompleted_clim = .true.
          endif
       endif
@@ -829,7 +823,7 @@ subroutine ncwrt_onlysed(iogrp)
 integer, intent(in) :: iogrp
 
 integer irec(nbgcmax), cmpflg
-character(len= 2) seqstring
+character(len= 2) seqstring_burst
 character(len=80) fname(nbgcmax)
 character(len=20) startdate
 character(len=30) timeunits
@@ -848,9 +842,9 @@ write(startdate,'(i4.4,a1,i2.2,a1,i2.2,a6)')                               &
 datenum=time-time0-0.5*diagfq_sed(iogrp)*30
 
 ! get file name
-write (seqstring,'(I0.2)') nburst
+write (seqstring_burst,'(I0.2)') nburst
 if (.not.append2file_sed(iogrp)) then
-   call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp))//"."//seqstring,nstep, &
+   call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp))//"."//seqstring_burst,nstep, &
       &        filefq_sed(iogrp)*30,filemon_sed(iogrp),       &
       &        fileann_sed(iogrp),filedec_sed(iogrp),filecen_sed(iogrp),      &
       &        filemil_sed(iogrp),fname(iogrp))
