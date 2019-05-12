@@ -861,7 +861,7 @@ if ( (filemon_sed(iogrp) .or. (                                               &
    & .or. .not.(filemon_sed(iogrp) .or. fileann_sed(iogrp) .or.               &
    &            filedec_sed(iogrp) .or. filecen_sed(iogrp) .or.               &
    &            filemil_sed(iogrp)) .and.                                     &
-   &  mod(nyear+12*nmonth+.5,filefq_sed(iogrp))<2.) then
+   &  mod(nyear*12+nmonth+.5,filefq_sed(iogrp))<2.) then
    append2file_sed(iogrp) = .false.
 endif
 if ( trim(fname(iogrp)) == "" .and. mnproc==1 ) then

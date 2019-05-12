@@ -154,6 +154,8 @@
 #endif
       nburst = 0
       nyear_global = nyear
+      if (mnproc == 1) write(io_stdo_bgc,'(a,i6)')                      &
+            &         'ini_hamocc(): nyear_global = ', nyear_global
 
       CALL ALLOC_MEM_BGCMEAN(kpie,kpje,kpke)
 
