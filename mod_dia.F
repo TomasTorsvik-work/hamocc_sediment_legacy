@@ -277,7 +277,9 @@ c
                write(fname,'(4a,i6.6,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
             else
-               call pstdat(ny,nm,nd,1)
+               if (diagann) then
+                  call pstdat(ny,nm,nd,1)
+               endif ! don't rewind for diagdec, diagcen and diagmil
                write(fname,'(4a,i4.4,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
             endif

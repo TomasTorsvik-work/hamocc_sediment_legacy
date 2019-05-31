@@ -347,8 +347,11 @@ subroutine updcln_onlysed()
 
 ! get new date
 nday=1
-if (nmonth == 1) then
+nmonth = nmonth + 1
+if (nmonth > 12) then
    nday_of_year=1
+   nmonth = 1
+   nyear = nyear + 1
    if (calendar(1:3) == 'sta') then
       if (mod(nyear,4)   == 0 .and.                                  &
        & (mod(nyear,100) /= 0 .or. mod(nyear,400) == 0)) then
