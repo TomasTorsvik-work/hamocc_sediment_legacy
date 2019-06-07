@@ -628,10 +628,19 @@ c
         endif
         diagmon_phy(n)=.false.
         diagann_phy(n)=.false.
+        diagdec_phy(n)=.false.
+        diagcen_phy(n)=.false.
+        diagmil_phy(n)=.false.
         if (GLB_AVEPERIO(n).eq.30) then
           diagmon_phy(n)=.true.
         elseif (GLB_AVEPERIO(n).eq.365) then
           diagann_phy(n)=.true.
+        elseif (GLB_AVEPERIO(n).eq.3650) then
+          diagdec_phy(n)=.true.
+        elseif (GLB_AVEPERIO(n).eq.36500) then
+          diagcen_phy(n)=.true.
+        elseif (GLB_AVEPERIO(n).eq.365000) then
+          diagmil_phy(n)=.true.
         endif
 c
         if (GLB_FILEFREQ(n).lt.0) then
@@ -641,10 +650,19 @@ c
         endif
         filemon_phy(n)=.false.
         fileann_phy(n)=.false.
+        filedec_phy(n)=.false.
+        filecen_phy(n)=.false.
+        filemil_phy(n)=.false.
         if (GLB_FILEFREQ(n).eq.30) then
           filemon_phy(n)=.true.
         elseif (GLB_FILEFREQ(n).eq.365) then
           fileann_phy(n)=.true.
+        elseif (GLB_FILEFREQ(n).eq.3650) then
+          filedec_phy(n)=.true.
+        elseif (GLB_FILEFREQ(n).eq.36500) then
+          filecen_phy(n)=.true.
+        elseif (GLB_FILEFREQ(n).eq.365000) then
+          filemil_phy(n)=.true.
         endif
       enddo
 c

@@ -19,7 +19,8 @@ c --- Averaging and writing frequencies for diagnostics output
       real, dimension(nphymax), save :: diagfq_phy,filefq_phy
       integer, dimension(nphymax), save :: nacc_phy
       logical, dimension(nphymax), save ::
-     .  diagmon_phy,filemon_phy,diagann_phy,fileann_phy
+     .  diagmon_phy,diagann_phy,diagdec_phy,diagcen_phy,diagmil_phy,
+     .  filemon_phy,fileann_phy,filedec_phy,filecen_phy,filemil_phy
 c
 c --- Restart parameters
       real, save :: rstfrq
@@ -197,8 +198,8 @@ c --- Namelist
 
 
 
-      subroutine diafnm(runid,runid_len,expcnf,ctag,nstep,diagfq,diagmon
-     .  ,diagann,diagdec,diagcen,diagmil,fname)
+      subroutine diafnm(runid,runid_len,expcnf,ctag,nstep,diagfq,filefq,
+     .   filemon,fileann,filedec,filecen,filemil,fname)
 c
 c --- ------------------------------------------------------------------
 c --- Description: creates file name for the diagnostic output
@@ -209,12 +210,13 @@ c ---   int  runid_len (in)    : actual length of runid
 c ---   char expcnf    (in)    : experiment configuration
 c ---   char ctag      (in)    : string used in middle of file name 
 c ---   real time      (in)    : MICOM time step 
-c ---   real diagfq    (in)    : diagnostic frequency     
-c ---   logi diagmon   (in)    : switch to show whether diagfq=month 
-c ---   logi diagann   (in)    : switch to show whether diagfq=year 
-c ---   logi diagdec   (in)    : switch to show whether diagfq=decade
-c ---   logi diagcen   (in)    : switch to show whether diagfq=century
-c ---   logi diagmil   (in)    : switch to show whether diagfq=millenium
+c ---   real diagfq    (in)    : diagnostic frequency (average period, d)
+c ---   real filefq    (in)    : diagnostic frequency (how often new file)
+c ---   logi filemon   (in)    : switch to show whether filefq=month
+c ---   logi fileann   (in)    : switch to show whether filefq=year
+c ---   logi filedec   (in)    : switch to show whether filefq=decade
+c ---   logi filecen   (in)    : switch to show whether filefq=century
+c ---   logi filemil   (in)    : switch to show whether filefq=millenium
 c ---   char fname     (out)   : file name 
 c --- ------------------------------------------
 c
@@ -224,24 +226,24 @@ c
 c
       character runid*(*),expcnf*(*),ctag*(*),fname*(*)
       integer runid_len,nstep
-      real diagfq
-      logical diagmon,diagann,diagdec,diagcen,diagmil
+      real diagfq,filefq
+      logical filemon,fileann,filedec,filecen,filemil
 c
       real epsil
       parameter (epsil=1.e-11)
 c
       integer ny,nm,nd,ns
 c
-      if (diagfq+epsil.gt.1.) then
+      if (filefq+epsil.gt.1.) then
         ny=nyear
         nm=nmonth
         nd=nday
         if   (expcnf.eq.'ben02clim') then
           call pstdat(ny,nm,nd,nint(diagfq))
-          if     (mod(nint(diagfq),360).eq.0) then
+          if     (mod(nint(filefq),360).eq.0) then
             write(fname,'(4a,i4.4,a)')
      .        runid(1:runid_len),'_',ctag,'_',ny,'.nc'
-          elseif (mod(nint(diagfq),30).eq.0) then
+          elseif (mod(nint(filefq),30).eq.0) then
             write(fname,'(4a,i4.4,a,i2.2,a)')
      .        runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.nc'
           else
@@ -249,11 +251,11 @@ c
      .        runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.nc'
           endif
         elseif (expcnf.eq.'ben02syn') then
-          if (diagmon) then
+          if (filemon) then
             call pstdat(ny,nm,nd,1)
             write(fname,'(4a,i4.4,a,i2.2,a)')
      .        runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.nc'
-          elseif (diagann) then
+          elseif (fileann) then
             call pstdat(ny,nm,nd,1)
             write(fname,'(4a,i4.4,a)')
      .        runid(1:runid_len),'_',ctag,'_',ny,'.nc'
@@ -263,33 +265,34 @@ c
      .        runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.nc'
           endif
         elseif (expcnf.eq.'cesm') then
-          if (diagmon) then
+          if (filemon) then
             if ( lspinning_up_sed ) then
+               call pstdat(ny,nm,nd,nint(diagfq-filefq))
                write(fname,'(4a,i6.6,a,i2.2,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'.nc'
             else
-               call pstdat(ny,nm,nd,1)
+               call pstdat(ny,nm,nd,nint(diagfq-filefq))
                write(fname,'(4a,i4.4,a,i2.2,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'.nc'
             endif
-          elseif (diagann .or. diagdec .or. diagcen .or. diagmil) then
+          elseif (fileann .or. filedec .or. filecen .or. filemil) then
             if ( lspinning_up_sed ) then
+               call pstdat(ny,nm,nd,nint(diagfq-filefq))
                write(fname,'(4a,i6.6,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
             else
-               if (diagann) then
-                  call pstdat(ny,nm,nd,1)
-               endif ! don't rewind for diagdec, diagcen and diagmil
+               call pstdat(ny,nm,nd,nint(diagfq-filefq))
                write(fname,'(4a,i4.4,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
             endif
           else
             if ( lspinning_up_sed ) then
+               call pstdat(ny,nm,nd,nint(diagfq-filefq))
                write(fname,'(4a,i6.6,a,i2.2,a,i2.2,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,
      .           '.nc'
             else
-               call pstdat(ny,nm,nd,nint(diagfq))
+               call pstdat(ny,nm,nd,nint(diagfq-filefq))
                write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,
      .           '.nc'
@@ -306,9 +309,10 @@ c
         ny=nyear
         nm=nmonth
         nd=nday
-        if (mod(nstep,nstep_in_day).eq.0) call pstdat(ny,nm,nd,1)
-        ns=nint(nint(mod(nstep+.5-diagfq,real(nstep_in_day))/diagfq)
-     .          *diagfq/nstep_in_day*86400)
+        if (mod(nstep,nstep_in_day).eq.0)
+     .    call pstdat(ny,nm,nd,nint(filefq-diagfq))
+        ns=nint(nint(mod(nstep+.5-filefq,real(nstep_in_day))/filefq)
+     .          *filefq/nstep_in_day*86400)
         if (expcnf.eq.'cesm') then
           write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a,i5.5,a)')
      .      runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,'-',
@@ -1687,17 +1691,24 @@ c
 c --- create file name 
       if (.not.append2file(iogrp)) then
         call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(IOGRP)),
-     .  nstep,filefq_phy(iogrp)/real(nstep_in_day),filemon_phy(iogrp),
-     .  fileann_phy(iogrp),.false.,.false.,.false.,fname(iogrp))
+     .  nstep,diagfq_phy(iogrp)/real(nstep_in_day),
+     .  filefq_phy(iogrp)/real(nstep_in_day),filemon_phy(iogrp),
+     .  fileann_phy(iogrp),filedec_phy(iogrp),filecen_phy(iogrp),
+     .  filemil_phy(iogrp),fname(iogrp))
         append2file(iogrp)=.true.
         irec(iogrp)=1
       else
         irec(iogrp)=irec(iogrp)+1
       endif
       if (((fileann_phy(iogrp).and.nday_of_year.eq.1.or.
+     .  filedec_phy(iogrp).and.mod(nyear,10).eq.1.and.nday_of_year.eq.1.or.
+     .  filecen_phy(iogrp).and.mod(nyear,100).eq.1.and.nday_of_year.eq.1.or.
+     .  filemil_phy(iogrp).and.mod(nyear,1000).eq.1.and.nday_of_year.eq.1.or.
      .  filemon_phy(iogrp).and.nday.eq.1).and.mod(nstep,nstep_in_day)
-     .  .eq.0).or..not.(fileann_phy(iogrp).or.filemon_phy(iogrp)).and.
-     .  mod(nstep+.5,filefq_phy(iogrp)).lt.1.) then
+     .  .le.1).or..not.(filemil_phy(iogrp).or.filecen_phy(iogrp).or.
+     .  filedec_phy(iogrp).or.fileann_phy(iogrp).or.filemon_phy(iogrp)).and.
+     .  mod(nstep+.5,filefq_phy(iogrp)).lt.2.) then
+        !FIXME: 2 in ncout_hamocc.F; 1 originally here in mod_dia.F.
         append2file(iogrp)=.false.
       endif
 c

@@ -347,20 +347,15 @@ subroutine updcln_onlysed()
 
 ! get new date
 nday=1
-nmonth = nmonth + 1
-if (nmonth > 12) then
-   nday_of_year=1
-   nmonth = 1
-   nyear = nyear + 1
-   if (calendar(1:3) == 'sta') then
-      if (mod(nyear,4)   == 0 .and.                                  &
-       & (mod(nyear,100) /= 0 .or. mod(nyear,400) == 0)) then
-         nd_in_m(2)=29
-         nday_in_year=366
-      else
-         nd_in_m(2)=28
-         nday_in_year=365
-      endif
+nday_of_year=1
+if (calendar(1:3) == 'sta') then
+   if (mod(nyear,4)   == 0 .and.                                  &
+    & (mod(nyear,100) /= 0 .or. mod(nyear,400) == 0)) then
+      nd_in_m(2)=29
+      nday_in_year=366
+   else
+      nd_in_m(2)=28
+      nday_in_year=365
    endif
 endif
 
@@ -432,13 +427,13 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
       enddo
 
       do nyear = 1, maxyear
+         ! update the calendar to the current year only for sediment_step()
+         call updcln_onlysed()
          nyear_global = nyear_global + 1
          if (mnproc == 1) write(io_stdo_bgc,'(a,i6)')                      &
                &         'sedmnt_offline(): nyear_global = ', nyear_global
-         do nmonth = 1, 12
-            ! do a monthly calendar update only for sediment_step()
-            call updcln_onlysed()
 
+         do nmonth = 1, 12
             ! set up sediment layers (much higher diffusion rate; correct timestep)
             dtoff = 3600*24*nd_in_m(nmonth)
             call bodensed(kpie,kpje,kpke,pddpo)
@@ -848,7 +843,7 @@ datenum=time-time0-0.5*diagfq_sed(iogrp)*30
 write (seqstring_burst,'(I0.2)') nburst
 if (.not.append2file_sed(iogrp)) then
    call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp))//"."//seqstring_burst,nstep, &
-      &        filefq_sed(iogrp)*30,filemon_sed(iogrp),       &
+      &        diagfq_sed(iogrp)*30,filefq_sed(iogrp)*30,filemon_sed(iogrp),  &
       &        fileann_sed(iogrp),filedec_sed(iogrp),filecen_sed(iogrp),      &
       &        filemil_sed(iogrp),fname(iogrp))
    append2file_sed(iogrp)=.true.

@@ -39,6 +39,7 @@ c
 c --- get file name
       if (.not.append2file(iogrp)) then
          call diafnm(runid,runid_len,expcnf,trim(GLB_FNAMETAG(iogrp)),nstep,
+     .               diagfq_bgc(iogrp)/real(nstep_in_day),
      .               filefq_bgc(iogrp)/real(nstep_in_day),filemon_bgc(iogrp),
      .               fileann_bgc(iogrp),filedec_bgc(iogrp),filecen_bgc(iogrp),
      .               filemil_bgc(iogrp),fname(iogrp))
