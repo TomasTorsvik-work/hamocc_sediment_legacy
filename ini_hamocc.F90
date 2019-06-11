@@ -152,7 +152,7 @@
 #if defined(SED_OFFLINE)
       nstep_in_month = 0
 #endif
-      nburst = 0
+      nburst = nburst_last
       nyear_global = nyear
       if (mnproc == 1) write(io_stdo_bgc,'(a,i6)')                      &
             &         'ini_hamocc(): nyear_global = ', nyear_global

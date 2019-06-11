@@ -53,6 +53,7 @@
       INTEGER :: nstep_in_month   !  accumulation counter for SED_OFFLINE.
       INTEGER :: maxyear_sediment !  number of years for off-line sediment integration.
       INTEGER :: maxyear_ocean    !  number of years for full MICOM-HAMOCC integration.
+      INTEGER :: nburst_last      !  nburst from the end of the previous simulation (startup: 0).
       LOGICAL :: lsed_rclim       !  whether to read bottom seawater climatology from file (nml).
       LOGICAL :: lsed_wclim       !  whether to write bottom seawater climatology to file (nml).
       LOGICAL :: lsed_spinup      !  whether to spin up the sediment (nml).

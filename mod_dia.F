@@ -265,34 +265,29 @@ c
      .        runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.nc'
           endif
         elseif (expcnf.eq.'cesm') then
+          call pstdat(ny,nm,nd,nint(diagfq))
           if (filemon) then
             if ( lspinning_up_sed ) then
-               call pstdat(ny,nm,nd,nint(diagfq-filefq))
                write(fname,'(4a,i6.6,a,i2.2,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'.nc'
             else
-               call pstdat(ny,nm,nd,nint(diagfq-filefq))
                write(fname,'(4a,i4.4,a,i2.2,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'.nc'
             endif
           elseif (fileann .or. filedec .or. filecen .or. filemil) then
             if ( lspinning_up_sed ) then
-               call pstdat(ny,nm,nd,nint(diagfq-filefq))
                write(fname,'(4a,i6.6,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
             else
-               call pstdat(ny,nm,nd,nint(diagfq-filefq))
                write(fname,'(4a,i4.4,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'.nc'
             endif
           else
             if ( lspinning_up_sed ) then
-               call pstdat(ny,nm,nd,nint(diagfq-filefq))
                write(fname,'(4a,i6.6,a,i2.2,a,i2.2,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,
      .           '.nc'
             else
-               call pstdat(ny,nm,nd,nint(diagfq-filefq))
                write(fname,'(4a,i4.4,a,i2.2,a,i2.2,a)')
      .           runid(1:runid_len),'.micom.',ctag,'.',ny,'-',nm,'-',nd,
      .           '.nc'

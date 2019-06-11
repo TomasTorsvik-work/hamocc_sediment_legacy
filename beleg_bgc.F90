@@ -85,7 +85,7 @@
 
 #ifdef SED_OFFLINE
       lcompleted_clim  = .false.
-      namelist /bgcnml/ atm_co2, maxyear_sediment, maxyear_ocean,    &
+      namelist /bgcnml/ atm_co2, maxyear_sediment, maxyear_ocean, nburst_last, &
          &              lsed_rclim, lsed_wclim, lsed_spinup
 #else
       namelist /bgcnml/ atm_co2
@@ -111,6 +111,7 @@
 #ifdef SED_OFFLINE
         write(io_stdo_bgc,*) 'HAMOCC: maxyear_sediment =',maxyear_sediment
         write(io_stdo_bgc,*) 'HAMOCC: maxyear_ocean =',maxyear_ocean
+        write(io_stdo_bgc,*) 'HAMOCC: nburst_last =',nburst_last
         write(io_stdo_bgc,*) 'HAMOCC: lsed_rclim =',lsed_rclim
         write(io_stdo_bgc,*) 'HAMOCC: lsed_wclim =',lsed_wclim
         write(io_stdo_bgc,*) 'HAMOCC: lsed_spinup =',lsed_spinup
