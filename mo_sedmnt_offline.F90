@@ -32,9 +32,10 @@ module mo_sedmnt_offline
 ! - subroutine read_clim()
 !     Read a bottom water climatology from file.
 !
-! - subroutine write_clim()
-!     Write a bottom water climatology to file.  This is done based on
-!     one-year MICOM/HAMOCC run over which monthly averages are
+! - subroutine prepare_clim()
+!     Accumulate bottom-water tracers and calculate their climatology
+!     values.  Optionally, write the climatology to file.  This is done
+!     based on one-year MICOM/HAMOCC run over which monthly averages are
 !     accumulated.
 !
 ! - subroutine sedmnt_offline()

@@ -87,6 +87,7 @@
       lcompleted_clim  = .false.
       namelist /bgcnml/ atm_co2, maxyear_sediment, maxyear_ocean, nburst_last, &
          &              lsed_rclim, lsed_wclim, lsed_spinup
+      nburst = nburst_last ! should be 0 for a startup simulation
 #else
       namelist /bgcnml/ atm_co2
 #endif
