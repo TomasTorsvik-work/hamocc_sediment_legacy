@@ -181,7 +181,7 @@
 ! ******************************************************************
 ! find lowest mass containing layer and its thickness
 
-      CALL calc_bot(kpie,kpje,kpke,pddpo)
+      if (.not. lspinning_up_sed) CALL calc_bot(kpie,kpje,kpke,pddpo)
 
       RETURN
       END

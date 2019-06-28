@@ -38,7 +38,7 @@ implicit none
 
 integer, intent(in)          :: ncid, klev, time
 character(len=*), intent(in) :: desc
-real, intent(inout)          :: arr(idm, jdm, klev)
+real, intent(in)             :: arr(idm, jdm, klev)
 
 integer :: ndims
 real :: arr_g(itdm,jtdm)
