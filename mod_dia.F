@@ -265,7 +265,11 @@ c
      .        runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.nc'
           endif
         elseif (expcnf.eq.'cesm') then
-          call pstdat(ny,nm,nd,nint(diagfq))
+          if ( filemon .or. fileann ) then
+            call pstdat(ny,nm,nd,1)
+          else
+            call pstdat(ny,nm,nd,nint(diagfq))
+          endif
           if (filemon) then
             if ( lspinning_up_sed ) then
                write(fname,'(4a,i6.6,a,i2.2,a)')
