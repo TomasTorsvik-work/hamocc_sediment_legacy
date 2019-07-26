@@ -47,10 +47,10 @@ subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,        &
 !  REAL     bolay    - thickness of the bottom gridbox [m].
 !  REAL     ocetra   - bottom layer ocean tracer ocetra(:,:,kbo,:).
 !  REAL     keqb     - chemical equilibrium constants.
-!  REAL     prorca   - sedimentation of carbon [kmol/m^2/s].
-!  REAL     prcaca   - sedimentation of calcium carbonate [kmol/m^2/s].
-!  REAL     silpro   - sedimentation of biogenic silica [kmol/m^2/s].
-!  REAL     produs   - sedimentation of lithogenic dust [kmol/m^2/s].
+!  REAL     prorca   - sedimentation of carbon [kmol/m^2/timestep].
+!  REAL     prcaca   - sedimentation of calcium carbonate [kmol/m^2/timestep].
+!  REAL     silpro   - sedimentation of biogenic silica [kmol/m^2/timestep].
+!  REAL     produs   - sedimentation of lithogenic dust [kmol/m^2/timestep].
 !  REAL     co3      - dissolved carbonate in the bottom gridbox [mol/kg].
 !
 ! The actual argument names sometimes end with an underscore, signifying
@@ -86,10 +86,10 @@ real, intent(in)     :: pdlxp(kpie,kpje), pdlyp(kpie,kpje)
 real, intent(in)     :: bolay_ (kpie,kpje)
 real, intent(in)     :: ocetra_(kpie,kpje,nocetra)
 real, intent(in)     :: keqb_  (11,kpie,kpje)
-real, intent(inout)  :: prorca_(kpie,kpje)
-real, intent(inout)  :: prcaca_(kpie,kpje)
-real, intent(inout)  :: silpro_(kpie,kpje)
-real, intent(inout)  :: produs_(kpie,kpje)
+real, intent(in)     :: prorca_(kpie,kpje)
+real, intent(in)     :: prcaca_(kpie,kpje)
+real, intent(in)     :: silpro_(kpie,kpje)
+real, intent(in)     :: produs_(kpie,kpje)
 real, intent(in)     :: co3_   (kpie,kpje)
 real, intent(in)     :: omask  (kpie,kpje)
 
@@ -201,10 +201,10 @@ call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
 
 do i = 1, kpie
    if(omask(i,j) > 0.5) then
-      if ( .not. lspinning_up_sed ) then
          sedfluxo(i,j,ipowasi) = sedfluxo(i,j,ipowasi) +                   &
             &    (silsat-sediso(i,0) - ocetra_(i,j,isilica))*bolay_(i,j)
 
+      if ( .not. lspinning_up_sed ) then
          ! NOTE: If ocetra_(:,:,:) instead of ocetra(:,:,kbo,:) were to be updated,
          !       the latter would need to be updated by the former later on (MvH)!
          !
@@ -562,16 +562,16 @@ if ( .not. lspinning_up_sed ) then
 !$OMP PARALLEL DO
 do j = 1, kpje
    do i = 1, kpie
-      silpro_(i,j) = 0.
-      prorca_(i,j) = 0.
+      silpro(i,j) = 0.
+      prorca(i,j) = 0.
 #ifdef __c_isotopes
       pror13(i,j) = 0.
       pror14(i,j) = 0.
       prca13(i,j) = 0.
       prca14(i,j) = 0.
 #endif
-      prcaca_(i,j) = 0.
-      produs_(i,j) = 0.
+      prcaca(i,j) = 0.
+      produs(i,j) = 0.
    enddo
 enddo
 !$OMP END PARALLEL DO

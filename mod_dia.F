@@ -228,6 +228,7 @@ c
       integer runid_len,nstep
       real diagfq,filefq
       logical filemon,fileann,filedec,filecen,filemil
+      integer mymonth
 c
       real epsil
       parameter (epsil=1.e-11)
@@ -265,10 +266,18 @@ c
      .        runid(1:runid_len),'_',ctag,'_',ny,'.',nm,'.',nd,'.nc'
           endif
         elseif (expcnf.eq.'cesm') then
-          if ( filemon .or. fileann ) then
-            call pstdat(ny,nm,nd,1)
-          else
-            call pstdat(ny,nm,nd,nint(diagfq))
+          if (.not. lspinning_up_sed ) then
+            if (diagfq==30) then ! always rewind the actual diagfq as the
+                                 !  fname is created after the first diagfq
+              if (nmonth /= 1) then
+                 mymonth = nmonth-1
+              else
+                 mymonth = 12
+              endif
+              call pstdat(ny,nm,nd,nd_in_m(mymonth))
+            else
+              call pstdat(ny,nm,nd,nint(diagfq))
+            endif
           endif
           if (filemon) then
             if ( lspinning_up_sed ) then

@@ -75,8 +75,8 @@ use mo_control_bgc
 use mo_carbch,      only: ocetra, keqb, co3
 use mo_param1_bgc,  only: nocetra, idet, icalc, iopal, ifdust        &
    &                    , ks, nsedtra, npowtra
-use mo_biomod,      only: kbo, bolay, wpoc, wmin, wmax, wdust        &
-   &                    , wlin, wopal, wcal
+use mo_biomod,      only: kbo, bolay, wpoco, wmino, wmaxo, wdusto    &
+   &                    , wlino, wopalo, wcalo
 use mod_xc
 use mo_common_bgc
 use mod_dia,        only: ddm, depthslev, depthslev_bnds             &
@@ -291,11 +291,11 @@ subroutine prepare_clim(nstep)
       co3_kbo_avg = co3_kbo_avg / nstep_in_month
       do j = 1, jdm     ! Here we assume the WLIN case.
          do i = 1, idm
-            wpoc = min(wmin+wlin*bolay_avg(i,j),wmax)
-            prorca_avg(i,j)=ocetra_kbo_avg(i,j,idet  )*wpoc
-            prcaca_avg(i,j)=ocetra_kbo_avg(i,j,icalc )*wcal
-            silpro_avg(i,j)=ocetra_kbo_avg(i,j,iopal )*wopal
-            produs_avg(i,j)=ocetra_kbo_avg(i,j,ifdust)*wdust
+            wpoco = min(wmino+wlino*bolay_avg(i,j),wmaxo)
+            prorca_avg(i,j)=ocetra_kbo_avg(i,j,idet  )*wpoco
+            prcaca_avg(i,j)=ocetra_kbo_avg(i,j,icalc )*wcalo
+            silpro_avg(i,j)=ocetra_kbo_avg(i,j,iopal )*wopalo
+            produs_avg(i,j)=ocetra_kbo_avg(i,j,ifdust)*wdusto
          enddo
       enddo
       nstep_in_month = 0
@@ -391,6 +391,9 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
    integer  :: nday_save, nmonth_save   ! calendar variables outside sedmnt_offline()
    integer  :: nyear_save, nday_of_year_save, nd_in_m_2, nday_in_year_save
    integer  :: nacc_bgc_1, nacc_bgc_2
+#if defined(SED_OFFLINE_DEBUG)
+   character(len= 2) seqstring_burst, seqstring_year
+#endif
 
    ! Read the bottom water climatology
    !
@@ -399,8 +402,11 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
       lread_clim = .false.       !  but only one time.
    endif
 
-   if ( lsed_spinup .and. lcompleted_clim ) then
-      if (.not. (nmonth==1 .and. nday==1) .and. mnproc==1) then
+   ! Apparently we need to wait until nday = 2 before starting the off-line
+   ! spin-up, because otherwise data won't be saved for the last period.
+   !
+   if ( lsed_spinup .and. lcompleted_clim .and. nday==2 ) then
+      if (.not. (nmonth==1 .and. nday<=2) .and. mnproc==1) then
          write(io_stdo_bgc,*) 'sedmnt_offline(): WARNING: Not at start of year!'
       endif
 
@@ -435,6 +441,39 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
                &         'sedmnt_offline(): nyear_global = ', nyear_global
 
          do nmonth = 1, 12
+#if defined(SED_OFFLINE_DEBUG)
+            ! We misuse the *_avg array variables to write current bottom water tracers.
+            ! An array of 12 timeslices is reserved, but only the first one stored (FIXME).
+            !
+            do iocetra = 1, nocetra
+               do j = 1, jdm
+                  do i = 1, idm
+                     ocetra_kbo_avg(i,j,iocetra) = ocetra(i,j,kbo(i,j),iocetra)
+                  enddo
+               enddo
+            enddo
+            do j = 1, jdm
+               do i = 1, idm
+                  bgc_t_kbo_avg(i,j) = bgc_t(i,j,kbo(i,j))
+                  bgc_s_kbo_avg(i,j) = bgc_s(i,j,kbo(i,j))
+                  bgc_rho_kbo_avg(i,j) = bgc_rho(i,j,kbo(i,j))
+                  co3_kbo_avg(i,j) = co3(i,j,kbo(i,j))
+                  wpoco = min(wmino+wlino*bolay_avg(i,j),wmaxo)
+                  prorca_avg(i,j)=ocetra_kbo_avg(i,j,idet  )*wpoco
+                  prcaca_avg(i,j)=ocetra_kbo_avg(i,j,icalc )*wcalo
+                  silpro_avg(i,j)=ocetra_kbo_avg(i,j,iopal )*wopalo
+                  produs_avg(i,j)=ocetra_kbo_avg(i,j,ifdust)*wdusto
+               enddo
+            enddo
+            bolay_avg = bolay
+            keqb_avg  = keqb
+
+            write (seqstring_burst,'(I0.2)') nburst
+            write (seqstring_year,'(I0.2)') nyear
+            call aufw_bgc_onlysed(idm, jdm, kdm, nyear, nmonth, nday, nstep,        &
+               & "bottom_seawater.burst"//seqstring_burst//".year"//seqstring_year//".DEBUG.nc")
+#endif
+
             ! set up sediment layers (much higher diffusion rate; correct timestep)
             dtoff = 3600*24*nd_in_m(nmonth)
             call bodensed(kpie,kpje,kpke,pddpo)
@@ -503,8 +542,24 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
       powtra2(:,:,ks+1:2*ks,:) = powtra(:,:,:,:)
       burial2(:,:,1,:)         = burial(:,:,:)
       burial2(:,:,2,:)         = burial(:,:,:)
+
+#if defined(SED_OFFLINE_DEBUG)
+      ! We misused the *_avg array variables to write current bottom water tracers.
+      !
+      ocetra_kbo_avg = 0.0
+      bolay_avg = 4000.0
+      keqb_avg  = 0.0
+      prorca_avg = 0.0
+      prcaca_avg = 0.0
+      silpro_avg = 0.0
+      produs_avg = 0.0
+      bgc_t_kbo_avg = 0.0
+      bgc_s_kbo_avg = 0.0
+      bgc_rho_kbo_avg = 0.0
+      co3_kbo_avg = 0.0
+#endif
+      lcompleted_clim = .false.  ! don't reuse the climatology
    endif
-   lcompleted_clim = .false.  ! don't reuse the climatology
 end subroutine sedmnt_offline
 
 subroutine alloc_mem_sedmnt_offline(kpie, kpje)

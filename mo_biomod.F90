@@ -49,6 +49,9 @@
       REAL :: bluefix,tf2,tf1,tf0,tff  
       REAL :: bkphy,bkzoo,bkopal,bifr13,bifr14
       REAL :: wpoc,wcal,wopal,drempoc,dremdoc,dremn2o
+# if defined(SED_OFFLINE)
+      REAL :: wpoco,wcalo,wopalo,wdusto
+# endif
       REAL :: dphymor,dzoomor,dremopal
       REAL :: dremsul
       REAL :: psedi,csedi,ssedi
@@ -63,6 +66,9 @@
       REAL :: dustd1,dustd2,dustd3,dustsink,calmax
 #elif defined(WLIN)
       REAL :: wmin,wmax,wlin
+# if defined(SED_OFFLINE)
+      REAL :: wmino,wmaxo,wlino
+# endif
 #endif
 #ifdef __c_isotopes
       REAL :: factor_13c, factor_14c, atm_c14_cal, atm_dc14_cal
