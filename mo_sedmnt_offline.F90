@@ -272,6 +272,9 @@ subroutine prepare_clim(nstep)
          bgc_rho_kbo_avg(i,j) = bgc_rho_kbo_avg(i,j) + bgc_rho(i,j,kbo(i,j))
          co3_kbo_avg(i,j) = co3_kbo_avg(i,j) + co3(i,j,kbo(i,j))
          bolay_avg(i,j) = min(bolay_avg(i,j), bolay(i,j))
+         ! Here we assume the WLIN case; current bottom layer depth must be used
+         wpoco = min(wmino+wlino*bgc_pu(i,j,kbo(i,j)),wmaxo)
+         prorca_avg(i,j) = prorca_avg(i,j) + ocetra_kbo_avg(i,j,idet)*wpoco
       enddo
    enddo
    keqb_avg  = keqb_avg  + keqb
@@ -289,10 +292,9 @@ subroutine prepare_clim(nstep)
       bgc_s_kbo_avg = bgc_s_kbo_avg / nstep_in_month
       bgc_rho_kbo_avg = bgc_rho_kbo_avg / nstep_in_month
       co3_kbo_avg = co3_kbo_avg / nstep_in_month
+      prorca_avg = prorca_avg / nstep_in_month
       do j = 1, jdm     ! Here we assume the WLIN case.
          do i = 1, idm
-            wpoco = min(wmino+wlino*bolay_avg(i,j),wmaxo)
-            prorca_avg(i,j)=ocetra_kbo_avg(i,j,idet  )*wpoco
             prcaca_avg(i,j)=ocetra_kbo_avg(i,j,icalc )*wcalo
             silpro_avg(i,j)=ocetra_kbo_avg(i,j,iopal )*wopalo
             produs_avg(i,j)=ocetra_kbo_avg(i,j,ifdust)*wdusto
@@ -443,7 +445,6 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
          do nmonth = 1, 12
 #if defined(SED_OFFLINE_DEBUG)
             ! We misuse the *_avg array variables to write current bottom water tracers.
-            ! An array of 12 timeslices is reserved, but only the first one stored (FIXME).
             !
             do iocetra = 1, nocetra
                do j = 1, jdm
@@ -458,8 +459,6 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
                   bgc_s_kbo_avg(i,j) = bgc_s(i,j,kbo(i,j))
                   bgc_rho_kbo_avg(i,j) = bgc_rho(i,j,kbo(i,j))
                   co3_kbo_avg(i,j) = co3(i,j,kbo(i,j))
-                  wpoco = min(wmino+wlino*bolay_avg(i,j),wmaxo)
-                  prorca_avg(i,j)=ocetra_kbo_avg(i,j,idet  )*wpoco
                   prcaca_avg(i,j)=ocetra_kbo_avg(i,j,icalc )*wcalo
                   silpro_avg(i,j)=ocetra_kbo_avg(i,j,iopal )*wopalo
                   produs_avg(i,j)=ocetra_kbo_avg(i,j,ifdust)*wdusto
