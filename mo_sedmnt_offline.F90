@@ -75,8 +75,7 @@ use mo_control_bgc
 use mo_carbch,      only: ocetra, keqb, co3
 use mo_param1_bgc,  only: nocetra, idet, icalc, iopal, ifdust        &
    &                    , ks, nsedtra, npowtra
-use mo_biomod,      only: kbo, bolay, wpoco, wmino, wmaxo, wdusto    &
-   &                    , wlino, wopalo, wcalo
+use mo_biomod,      only: kbo, bolay
 use mod_xc
 use mo_common_bgc
 use mod_dia,        only: ddm, depthslev, depthslev_bnds             &
@@ -229,7 +228,6 @@ subroutine read_clim()
    lcompleted_clim = .true.
 
    ocetra_kbo_avg = 0.0
-   bolay_avg = 4000.0 ! maximum of lowest bottom layer thickness
    keqb_avg  = 0.0
    prorca_avg = 0.0
    prcaca_avg = 0.0
@@ -239,9 +237,13 @@ subroutine read_clim()
    bgc_s_kbo_avg = 0.0
    bgc_rho_kbo_avg = 0.0
    co3_kbo_avg = 0.0
+   bolay_avg = 0.0
 end subroutine read_clim
 
 subroutine prepare_clim(nstep)
+
+   use mo_sedmnt, only: silpro, prorca, prcaca, produs
+
    ! Subprogram arguments
    !
    integer, intent(in) :: nstep
@@ -271,35 +273,33 @@ subroutine prepare_clim(nstep)
          bgc_s_kbo_avg(i,j) = bgc_s_kbo_avg(i,j) + bgc_s(i,j,kbo(i,j))
          bgc_rho_kbo_avg(i,j) = bgc_rho_kbo_avg(i,j) + bgc_rho(i,j,kbo(i,j))
          co3_kbo_avg(i,j) = co3_kbo_avg(i,j) + co3(i,j,kbo(i,j))
-         bolay_avg(i,j) = min(bolay_avg(i,j), bolay(i,j))
-         ! Here we assume the WLIN case; current bottom layer depth must be used
-         wpoco = min(wmino+wlino*bgc_pu(i,j,kbo(i,j)),wmaxo)
-         prorca_avg(i,j) = prorca_avg(i,j) + ocetra_kbo_avg(i,j,idet)*wpoco
       enddo
    enddo
    keqb_avg  = keqb_avg  + keqb
-   !bolay_avg = bolay_avg + bolay
+   bolay_avg = bolay_avg + bolay
+   prorca_avg = prorca_avg + prorca
+   prcaca_avg = prcaca_avg + prcaca
+   silpro_avg = silpro_avg + silpro
+   produs_avg = produs_avg + produs
 
-   if ( nday==nd_in_m(nmonth) .and. is_end_of_day ) then
+   if ( nday==nd_in_m(nmonth) .and. mod(nstep,nstep_in_day)==17 ) then
 
       ! Calculate tracer monthly average
       if (mnproc == 1) write(io_stdo_bgc,*)                             &
          &  'prepare_clim(): end of month, set tracer avg for last month'
+      if (mnproc == 1) write(io_stdo_bgc,*)                             &
+         &  'prepare_clim(): nmonth =', nmonth, ', nstep_in_month =', nstep_in_month
       ocetra_kbo_avg = ocetra_kbo_avg / nstep_in_month
-      !bolay_avg = bolay_avg / nstep_in_month
+      bolay_avg = bolay_avg / nstep_in_month
       keqb_avg = keqb_avg / nstep_in_month
       bgc_t_kbo_avg = bgc_t_kbo_avg / nstep_in_month
       bgc_s_kbo_avg = bgc_s_kbo_avg / nstep_in_month
       bgc_rho_kbo_avg = bgc_rho_kbo_avg / nstep_in_month
       co3_kbo_avg = co3_kbo_avg / nstep_in_month
-      prorca_avg = prorca_avg / nstep_in_month
-      do j = 1, jdm     ! Here we assume the WLIN case.
-         do i = 1, idm
-            prcaca_avg(i,j)=ocetra_kbo_avg(i,j,icalc )*wcalo
-            silpro_avg(i,j)=ocetra_kbo_avg(i,j,iopal )*wopalo
-            produs_avg(i,j)=ocetra_kbo_avg(i,j,ifdust)*wdusto
-         enddo
-      enddo
+      prorca_avg = prorca_avg / nstep_in_month * rdtsed
+      prcaca_avg = prcaca_avg / nstep_in_month * rdtsed
+      silpro_avg = silpro_avg / nstep_in_month * rdtsed
+      produs_avg = produs_avg / nstep_in_month * rdtsed
       nstep_in_month = 0
 
       ! Write tracer monthly averages to netCDF file
@@ -329,7 +329,6 @@ subroutine prepare_clim(nstep)
       endif
 
       ocetra_kbo_avg = 0.0
-      bolay_avg = 4000.0
       keqb_avg  = 0.0
       prorca_avg = 0.0
       prcaca_avg = 0.0
@@ -339,6 +338,7 @@ subroutine prepare_clim(nstep)
       bgc_s_kbo_avg = 0.0
       bgc_rho_kbo_avg = 0.0
       co3_kbo_avg = 0.0
+      bolay_avg = 0.0
    endif ! end of month routines
 end subroutine prepare_clim
 
@@ -393,9 +393,6 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
    integer  :: nday_save, nmonth_save   ! calendar variables outside sedmnt_offline()
    integer  :: nyear_save, nday_of_year_save, nd_in_m_2, nday_in_year_save
    integer  :: nacc_bgc_1, nacc_bgc_2
-#if defined(SED_OFFLINE_DEBUG)
-   character(len= 2) seqstring_burst, seqstring_year
-#endif
 
    ! Read the bottom water climatology
    !
@@ -404,11 +401,11 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
       lread_clim = .false.       !  but only one time.
    endif
 
-   ! Apparently we need to wait until nday = 2 before starting the off-line
-   ! spin-up, because otherwise data won't be saved for the last period.
+   ! With a startup run, MICOM/HAMOCC starts at nday=2, and otherwise this
+   ! should be nday=1, but we allow the off-line spin-up to start at any date.
    !
-   if ( lsed_spinup .and. lcompleted_clim .and. nday==2 ) then
-      if (.not. (nmonth==1 .and. nday<=2) .and. mnproc==1) then
+   if ( lsed_spinup .and. lcompleted_clim ) then
+      if (.not.(nmonth==1 .and. nday<=2) .and. mnproc==1) then
          write(io_stdo_bgc,*) 'sedmnt_offline(): WARNING: Not at start of year!'
       endif
 
@@ -440,41 +437,15 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
          call updcln_onlysed()
          nyear_global = nyear_global + 1
          if (mnproc == 1) write(io_stdo_bgc,'(a,i6)')                      &
-               &         'sedmnt_offline(): nyear_global = ', nyear_global
+            &     'sedmnt_offline(): nyear        =', nyear
+         if (mnproc == 1) write(io_stdo_bgc,'(a,i6)')                      &
+            &     'sedmnt_offline(): nyear_global =', nyear_global
 
          do nmonth = 1, 12
-#if defined(SED_OFFLINE_DEBUG)
-            ! We misuse the *_avg array variables to write current bottom water tracers.
-            !
-            do iocetra = 1, nocetra
-               do j = 1, jdm
-                  do i = 1, idm
-                     ocetra_kbo_avg(i,j,iocetra) = ocetra(i,j,kbo(i,j),iocetra)
-                  enddo
-               enddo
-            enddo
-            do j = 1, jdm
-               do i = 1, idm
-                  bgc_t_kbo_avg(i,j) = bgc_t(i,j,kbo(i,j))
-                  bgc_s_kbo_avg(i,j) = bgc_s(i,j,kbo(i,j))
-                  bgc_rho_kbo_avg(i,j) = bgc_rho(i,j,kbo(i,j))
-                  co3_kbo_avg(i,j) = co3(i,j,kbo(i,j))
-                  prcaca_avg(i,j)=ocetra_kbo_avg(i,j,icalc )*wcalo
-                  silpro_avg(i,j)=ocetra_kbo_avg(i,j,iopal )*wopalo
-                  produs_avg(i,j)=ocetra_kbo_avg(i,j,ifdust)*wdusto
-               enddo
-            enddo
-            bolay_avg = bolay
-            keqb_avg  = keqb
 
-            write (seqstring_burst,'(I0.2)') nburst
-            write (seqstring_year,'(I0.2)') nyear
-            call aufw_bgc_onlysed(idm, jdm, kdm, nyear, nmonth, nday, nstep,        &
-               & "bottom_seawater.burst"//seqstring_burst//".year"//seqstring_year//".DEBUG.nc")
-#endif
-
-            ! set up sediment layers (much higher diffusion rate; correct timestep)
-            dtoff = 3600*24*nd_in_m(nmonth)
+            ! set timestep lengths and set up sediment layers (much higher diffusion rate)
+            dtoff = 3600*24*nd_in_m(nmonth)  !  time step length [sec].
+            dto = nd_in_m(nmonth)            !  time step length [days].
             call bodensed(kpie,kpje,kpke,pddpo)
 
             call sediment_step(idm, jdm, kdm, bgc_dp, bgc_dx, bgc_dy,      &
@@ -542,21 +513,6 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
       burial2(:,:,1,:)         = burial(:,:,:)
       burial2(:,:,2,:)         = burial(:,:,:)
 
-#if defined(SED_OFFLINE_DEBUG)
-      ! We misused the *_avg array variables to write current bottom water tracers.
-      !
-      ocetra_kbo_avg = 0.0
-      bolay_avg = 4000.0
-      keqb_avg  = 0.0
-      prorca_avg = 0.0
-      prcaca_avg = 0.0
-      silpro_avg = 0.0
-      produs_avg = 0.0
-      bgc_t_kbo_avg = 0.0
-      bgc_s_kbo_avg = 0.0
-      bgc_rho_kbo_avg = 0.0
-      co3_kbo_avg = 0.0
-#endif
       lcompleted_clim = .false.  ! don't reuse the climatology
    endif
 end subroutine sedmnt_offline
@@ -1037,7 +993,7 @@ call ncattr('bounds','depth_bnds')
 
 call ncdefvar('depth_bnds','bounds depth',ndouble,8)
 call ncdefvar3d(CARFLX_BOT(iogrp),cmpflg,'p','carflx_bot',           &
-   &            'C flux to sediment',' ','mol C m-2 s-1',0)
+   &            'POM flux to sediment',' ','mol P m-2 s-1',0)
 call ncdefvar3d(BSIFLX_BOT(iogrp),cmpflg,'p','bsiflx_bot',           &
    &            'Opal flux to sediment',' ','mol Si m-2 s-1',0)
 call ncdefvar3d(CALFLX_BOT(iogrp),cmpflg,'p','calflx_bot',           &

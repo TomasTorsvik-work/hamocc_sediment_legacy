@@ -62,9 +62,11 @@
       real :: sumsed
 
       if (lspinning_up_sed) then
+         dts = dto
          dtsed = dtoff
          rdtsed = dtoff/dtbgc
       else
+         dts = dtb
          dtsed = dtbgc
          rdtsed = 1.0
       endif

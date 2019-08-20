@@ -194,11 +194,11 @@
       IF(mnproc==1) THEN
         WRITE(io_stdo_bgc,*) ' '
         WRITE(io_stdo_bgc,*) 'Date of bgc restart file : '
-        WRITE(io_stdo_bgc,*) ' year  = ',restyear
-        WRITE(io_stdo_bgc,*) ' month = ',restmonth
-        WRITE(io_stdo_bgc,*) ' day   = ',restday
-        WRITE(io_stdo_bgc,*) ' dtoce = ',restdtoce
-        WRITE(io_stdo_bgc,*) ' dtbgc = ',ldtbgc
+        WRITE(io_stdo_bgc,*) ' restyear  = ',restyear
+        WRITE(io_stdo_bgc,*) ' restmonth = ',restmonth
+        WRITE(io_stdo_bgc,*) ' restday   = ',restday
+        WRITE(io_stdo_bgc,*) ' restdtoce = ',restdtoce
+        WRITE(io_stdo_bgc,*) ' ldtbgc    = ',ldtbgc
         WRITE(io_stdo_bgc,*) ' '
       ENDIF
 

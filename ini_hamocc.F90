@@ -127,9 +127,7 @@
       dtb=1./ndtdaybgc              !  time step length [days].
 
 #if defined(SED_OFFLINE)
-      dtoff = 3600*24*nday_in_year/12  !  time step length [sec].
-      ndtdayoff=86400./dtoff           !  time steps per day [No].
-      dto=1./ndtdayoff                 !  time step length [days].
+! dtoff and dto depend on the month, so are set each month in bodensed().
 
       if (lsed_rclim .and. .not. (kplmonth==1 .and. kplday<=2)) then
          write(io_stdo_bgc,*) 'WARNING: Not at start of year!  The transition between'
@@ -152,7 +150,7 @@
 #if defined(SED_OFFLINE)
       nstep_in_month = 0
 #endif
-      nyear_global = nyear
+      nyear_global = 0
       if (mnproc == 1) write(io_stdo_bgc,'(a,i6)')                      &
             &         'ini_hamocc(): nyear_global = ', nyear_global
 

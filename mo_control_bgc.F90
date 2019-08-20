@@ -38,11 +38,8 @@
       REAL    :: dtbgc            !  HAMOCC time step length [sec].
       REAL    :: dtb              !  HAMOCC time step length [days].
       INTEGER :: ndtdaybgc        !  time steps per day.
-!#if defined(SED_OFFLINE)
       REAL    :: dtoff            !  off-line sediment time step length [sec].
       REAL    :: dto              !  off-line sediment time step length [days].
-      REAL    :: ndtdayoff        !  time steps per day for off-line sediment.
-!#endif
       REAL    :: dtsed            !  sediment time step length [sec].
       REAL    :: dts              !  sediment time step length [days].
       REAL    :: rdtsed           !  ratio of sediment over biogeochemistry time step.
@@ -54,6 +51,7 @@
       INTEGER :: maxyear_sediment !  number of years for off-line sediment integration.
       INTEGER :: maxyear_ocean    !  number of years for full MICOM-HAMOCC integration.
       INTEGER :: nburst_last      !  nburst from the end of the previous simulation (startup: 0).
+      INTEGER :: nburst           !  counter of running sediment off-line.
       LOGICAL :: lsed_rclim       !  whether to read bottom seawater climatology from file (nml).
       LOGICAL :: lsed_wclim       !  whether to write bottom seawater climatology to file (nml).
       LOGICAL :: lsed_spinup      !  whether to spin up the sediment (nml).
@@ -62,10 +60,7 @@
       LOGICAL :: lcompleted_clim  !  whether we have a recent climatology available.
 #endif
       LOGICAL :: lspinning_up_sed !  whether spinning up the sediment now.
-      INTEGER :: nburst           !  counter of running sediment off-line.
       INTEGER :: nyear_global     !  ocean model year number, including sediment().
-      LOGICAL :: is_end_of_day    !  whether we are at the last timestep of the day.
-      LOGICAL :: is_start_of_day  !  whether we are at the first timestep of the day.
 
 
       INTEGER :: icyclibgc        !  switch for cyclicity.

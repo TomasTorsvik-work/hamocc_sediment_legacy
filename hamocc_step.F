@@ -37,16 +37,16 @@ c
      .    bgcwrt(l) = .true.
       enddo
 c
-      is_start_of_day = mod(nstep-1,nstep_in_day)==0
-#ifdef SED_OFFLINE
-      call sedmnt_offline(idm, jdm, kdm, maxyear_sediment, nstep,
-     .                    bgc_dp, bgc_dx, bgc_dy, omask)
-#endif
-
-      if ( nday_of_year==1 .and. is_start_of_day ) then
+c     At the start of every year, and when not reading climatology (or
+c     at the start of the simulation for startup that begins at day 2),
+c     increase the simulation year nyear_global.
+      if ( (nday_of_year==1 .and. mod(ldtrunbgc,nstep_in_day)==0 .or.
+     .   ldtrunbgc==0) .and. .not. lread_clim ) then
          nyear_global = nyear_global + 1
+         if (mnproc == 1) write(io_stdo_bgc,'(a,i6)')
+     .            'hamocc_step(): nyear        =', nyear
          if (mnproc.eq.1) write(io_stdo_bgc,'(a,i6)')
-     .            'hamocc_step(): nyear_global = ', nyear_global
+     .            'hamocc_step(): nyear_global =', nyear_global
       endif
 c
       call hamocc4bcm(idm,jdm,kdm,pglat,bgc_swr,bgc_fice,
@@ -54,14 +54,16 @@ c
      .            bgc_pu,bgc_pw,bgc_dpio,bgc_awnd,bgc_atmco2,bgc_flxco2,
      .            nyear,nmonth,nday,nd_in_m(nmonth),ldtmonth,ldtday,
      .            omask,nday_in_year,bgc_flxdms)
-
-      is_end_of_day = mod(nstep,nstep_in_day)==0
+c
 #ifdef SED_OFFLINE
-      ! accumulate bottom water tracers when in
-      ! the last year of MICOM/HAMOCC simulation
+c     accumulate bottom water tracers when in
+c     the last year of MICOM/HAMOCC simulation
       if ( (lsed_wclim .or. lsed_spinup) .and. mod(nyear,maxyear_ocean)==0 ) then
          call prepare_clim(nstep)
       endif
+c
+      call sedmnt_offline(idm, jdm, kdm, maxyear_sediment, nstep,
+     .                    bgc_dp, bgc_dx, bgc_dy, omask)
 #endif
 c
       call hamocc2micom(m,n,mm,nn)

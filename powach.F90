@@ -54,15 +54,16 @@ subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,        &
 !  REAL     co3      - dissolved carbonate in the bottom gridbox [mol/kg].
 !
 ! The actual argument names sometimes end with an underscore, signifying
-! that they may be passed in the call as a mutable array, or they may be
-! passed as an object that must not be changed, a true Fortran 90 dummy
-! variable whose mutability is normally restricted with INTENT(IN).
+! that they could point to either coupled model fields or climatology.
+! We chose them to make them immutible, using INTENT(IN), since relevant
+! to be updated coupled model variables prorca, prcaca, silpro and produs
+! are available anyway through mo_sedmnt.  Therefore we update those
+! directly instead of the dummy variable outside the lspinning_up case.
+! In this case both the dummy prorca_ and prorca point to the same
+! address, so it doesn't matter to which we assign values.
 ! We could overload the INTENT, possibly through an optional logical
 ! argument in an INTERFACE, but it may be more confusing than helpful.
-! In the standard (.not. lspinning_up_sed) case, prorca etc. will have
-! been passed for the prorca_ etc. dummy arguments (prorca_ => prorca),
-! so it doesn't matter to which we assign values.
-! However, in the standard case we must assign to ocetra(:,:,kbo,:) as
+! Moreover, in the standard case we must assign to ocetra(:,:,kbo,:) as
 ! ocetra_ => ocetra_kbo (newly defined in hamocc4bcm.F90), not ocetra.
 !
 !-----------------------------------------------------------------------
@@ -294,13 +295,6 @@ do i = 1, kpie
       sedlay(i,j,1,issso14)                                     &
          &      = sedlay(i,j,1,issso14)+pror14(i,j)/(porsol(1)*seddw(1))
 #endif
-      if ( .not. lspinning_up_sed ) then
-         prorca(i,j) = 0.
-#ifdef __c_isotopes
-         pror13(i,j) = 0.
-         pror14(i,j) = 0.
-#endif
-      endif
    endif
 enddo
 
@@ -413,8 +407,8 @@ do k = 1, ks
       if(omask(i,j) > 0.5) then
          saln= psao_(i,j)
          rrho= prho_(i,j)
-         alk = (powtra(i,j,k,ipowaal)-(anaerob(i,k)+aerob(i,k))*16.)  / rrho
-         c   = (powtra(i,j,k,ipowaic)+(anaerob(i,k)+aerob(i,k))*122.) / rrho
+         alk = (powtra(i,j,k,ipowaal)-(anaerob(i,k)+aerob(i,k))*rnit) / rrho
+         c   = (powtra(i,j,k,ipowaic)+(anaerob(i,k)+aerob(i,k))*rcar) / rrho
          sit =  powtra(i,j,k,ipowasi) / rrho
          pt  =  powtra(i,j,k,ipowaph) / rrho
          ah1 = sedhpl(i,j,k)
@@ -496,13 +490,6 @@ do i = 1, kpie
       sedlay(i,j,1,isssc13) = sedlay(i,j,1,isssc13)+prca13(i,j)/(porsol(1)*seddw(1))
       sedlay(i,j,1,isssc14) = sedlay(i,j,1,isssc14)+prca14(i,j)/(porsol(1)*seddw(1))
 #endif
-      if ( .not. lspinning_up_sed ) then
-         prcaca(i,j) = 0.
-#ifdef __c_isotopes
-         prca13(i,j) = 0.
-         prca14(i,j) = 0.
-#endif
-      endif
    endif
 enddo
 
@@ -521,9 +508,9 @@ do k = 1, ks
          posol = sediso(i,k)*solrat(i,k)
          sedlay(i,j,k,isssc12) = sedlay(i,j,k,isssc12)-posol
          powtra(i,j,k,ipowaic) = powtra(i,j,k,ipowaic)                 &
-            &                  + posol*umfa+(aerob(i,k)+anaerob(i,k))*122.
+            &                  + posol*umfa+(aerob(i,k)+anaerob(i,k))*rcar
          powtra(i,j,k,ipowaal) = powtra(i,j,k,ipowaal)                 &
-            &                  + 2.*posol*umfa-16.*(aerob(i,k)+anaerob(i,k))
+            &                  + 2.*posol*umfa-rnit*(aerob(i,k)+anaerob(i,k))
 #ifdef __c_isotopes
          ratc13 = sedlay(i,j,k,isssc13)/(sedlay(i,j,k,isssc12)+1.e-24)
          ratc14 = sedlay(i,j,k,isssc14)/(sedlay(i,j,k,isssc12)+1.e-24)
@@ -557,25 +544,6 @@ do j = 1, kpje
    enddo
 enddo
 !$OMP END PARALLEL DO
-
-if ( .not. lspinning_up_sed ) then
-!$OMP PARALLEL DO
-do j = 1, kpje
-   do i = 1, kpie
-      silpro(i,j) = 0.
-      prorca(i,j) = 0.
-#ifdef __c_isotopes
-      pror13(i,j) = 0.
-      pror14(i,j) = 0.
-      prca13(i,j) = 0.
-      prca14(i,j) = 0.
-#endif
-      prcaca(i,j) = 0.
-      produs(i,j) = 0.
-   enddo
-enddo
-!$OMP END PARALLEL DO
-endif
 
 return
 end

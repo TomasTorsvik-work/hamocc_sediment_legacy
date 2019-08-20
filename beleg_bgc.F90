@@ -87,7 +87,6 @@
       lcompleted_clim  = .false.
       namelist /bgcnml/ atm_co2, maxyear_sediment, maxyear_ocean, nburst_last, &
          &              lsed_rclim, lsed_wclim, lsed_spinup
-      nburst = nburst_last ! should be 0 for a startup simulation
 #else
       namelist /bgcnml/ atm_co2
 #endif
@@ -101,7 +100,7 @@
 !
 #ifndef DIFFAT            
 !
-! Obtain the CCSM value of atmospheric co2 concentration.
+! Obtain the atmospheric CO2 concentration and sediment spin-up parameters.
 !
       open (unit=io_nml,file='ocn_in',status='old',action='read',      &
      &      recl=80)
@@ -120,6 +119,7 @@
       ENDIF
 #ifdef SED_OFFLINE
       if (lsed_rclim) lread_clim = .true.
+      nburst = nburst_last ! set to 0 in namelist for a startup simulation
 #endif
       atm_o2  = 196800.
       atm_n2  = 802000.
@@ -191,20 +191,10 @@
       wpoc  =  5.*dtb       !m/d  iris : 5.
       wcal  = 30.*dtb       !m/d 
       wopal = 30.*dtb       !m/d  iris : 60
-# ifdef SED_OFFLINE
-      wpoco =  5.*dto       !m/d  iris : 5.
-      wcalo = 30.*dto       !m/d
-      wopalo= 30.*dto       !m/d  iris : 60
-# endif
 #ifdef WLIN
       wmin  =  1.*dtb       !m/d   minimum sinking speed
       wmax  = 60.*dtb       !m/d   maximum sinking speed
       wlin  = 60./2400.*dtb !m/d/m constant describing incr. with depth, r/a=1.0
-# ifdef SED_OFFLINE
-      wmino =  1.*dto       !m/d   minimum sinking speed
-      wmaxo = 60.*dto       !m/d   maximum sinking speed
-      wlino = 60./2400.*dto !m/d/m constant describing incr. with depth, r/a=1.0
-# endif
 #endif
 
       
@@ -420,9 +410,6 @@
      &         * (claydens - 1025.) / 1.567 * 1000.    &  !excess density / dyn. visc.
      &         * dustd2 * 1.e-4)*dtb
       wdust = dustsink
-#ifdef SED_OFFLINE
-      wdusto= dustsink * dto/dtb
-#endif
 
       IF (mnproc.eq.1) THEN
       WRITE(io_stdo_bgc,*)                                             &

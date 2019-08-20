@@ -48,11 +48,9 @@ use mo_bgcmean
 #if defined(SED_OFFLINE)
 use mo_sedmnt_offline, only: accsdm_offl, accbur_offl
 #endif
-!  &                       , jpowaic => jpowaic_ ! passed as argument
-use mo_control_bgc!, only: io_stdo_bgc
+use mo_control_bgc, only: io_stdo_bgc, dtsed, rdtsed, dtbgc, dtoff, lspinning_up_sed
 use mo_param1_bgc
 use mo_sedmnt
-!use mo_common_bgcs
 
 implicit none
 
@@ -117,7 +115,7 @@ CALL INVENTORY_BGC(kpie,kpje,kpke,pdlxp,pdlyp,pddpo,omask,0)
 ! hamocc4bcm() calls CARCHM(), which includes code for sediment C-14 decay.
 ! This should be added (TODO, e.g., here) when isotopes are included. - MvH
 
-! sediment is shifted every sediment() timestep
+! sediment is shifted every timestep
 call sedshi(kpie,kpje,omask)
 
 #if defined(SED_OFFLINE)
