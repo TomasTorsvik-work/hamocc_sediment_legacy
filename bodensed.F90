@@ -38,6 +38,7 @@
 !     *INTEGER* *kpje*    - 2nd dimension of model grid.
 !     *INTEGER* *kpke*    - 3rd (vertical) dimension of model grid.
 !     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
+!     *REAL*    *dtsed*   - sediment model time step [sec].
 !
 !     Externals
 !     ---------
@@ -60,16 +61,6 @@
       real, intent(in) :: pddpo(kpie,kpje,kpke)
       integer :: i,j,k
       real :: sumsed
-
-      if (lspinning_up_sed) then
-         dts = dto
-         dtsed = dtoff
-         rdtsed = dtoff/dtbgc
-      else
-         dts = dtb
-         dtsed = dtbgc
-         rdtsed = 1.0
-      endif
 
       dzs(1) = 0.001
       dzs(2) = 0.003

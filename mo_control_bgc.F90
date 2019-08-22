@@ -39,9 +39,7 @@
       REAL    :: dtb              !  HAMOCC time step length [days].
       INTEGER :: ndtdaybgc        !  time steps per day.
       REAL    :: dtoff            !  off-line sediment time step length [sec].
-      REAL    :: dto              !  off-line sediment time step length [days].
       REAL    :: dtsed            !  sediment time step length [sec].
-      REAL    :: dts              !  sediment time step length [days].
       REAL    :: rdtsed           !  ratio of sediment over biogeochemistry time step.
 
       INTEGER :: ldtbgc           !  time step number from bgc restart file

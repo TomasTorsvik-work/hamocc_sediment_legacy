@@ -498,19 +498,19 @@ if (kplmon == 1) then ! only for first month
      &    rmissing,72,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'prorca',3,ncdimst,ncvarid,          &
-     &    18,'kmol P m-2 s-1 dto',20,'Sedimentation of POM',       &
+     &    14,'kmol P m-2 s-1',20,'Sedimentation of POM',       &
      &    rmissing,77,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'prcaca',3,ncdimst,ncvarid,          &
-     &    19,'kmol Ca m-2 s-1 dto',34,'Sedimentation of calcium carbonate',       &
+     &    15,'kmol Ca m-2 s-1',34,'Sedimentation of calcium carbonate',       &
      &    rmissing,77,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'silpro',3,ncdimst,ncvarid,          &
-     &    19,'kmol Si m-2 s-1 dto',32,'Sedimentation of biogenic silica',       &
+     &    15,'kmol Si m-2 s-1',32,'Sedimentation of biogenic silica',       &
      &    rmissing,77,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,6,'produs',3,ncdimst,ncvarid,          &
-     &    10,'kmol/m^2/s',21,'Sedimentation of dust',       &
+     &    10,'kg m-2 s-1',21,'Sedimentation of dust',       &
      &    rmissing,77,io_stdo_bgc)
 
       CALL NETCDF_DEF_VARDB(ncid,9,'bgc_t_kbo',3,ncdimst,ncvarid,          &

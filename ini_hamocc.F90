@@ -125,10 +125,10 @@
       dtbgc = pdt                   !  time step length [sec].
       ndtdaybgc=NINT(86400./dtbgc)  !  time steps per day [No].
       dtb=1./ndtdaybgc              !  time step length [days].
+      dtsed = dtbgc                 !  time step length for sediment [sec].
+      rdtsed = 1.0                  !  correction factor for offline sediment.
 
 #if defined(SED_OFFLINE)
-! dtoff and dto depend on the month, so are set each month in bodensed().
-
       if (lsed_rclim .and. .not. (kplmonth==1 .and. kplday<=2)) then
          write(io_stdo_bgc,*) 'WARNING: Not at start of year!  The transition between'
          write(io_stdo_bgc,*) 'stand-alone and coupled sediment will be inconsistent!'

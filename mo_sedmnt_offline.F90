@@ -216,10 +216,10 @@ subroutine read_clim()
       ocetra_kbo_clim(:,:,:,imonth) = ocetra_kbo_avg
       bolay_clim(:,:,imonth) = bolay_avg
       keqb_clim(:,:,:,imonth) = keqb_avg
-      prorca_clim(:,:,imonth) = prorca_avg
-      prcaca_clim(:,:,imonth) = prcaca_avg
-      silpro_clim(:,:,imonth) = silpro_avg
-      produs_clim(:,:,imonth) = produs_avg
+      prorca_clim(:,:,imonth) = prorca_avg * dtoff
+      prcaca_clim(:,:,imonth) = prcaca_avg * dtoff
+      silpro_clim(:,:,imonth) = silpro_avg * dtoff
+      produs_clim(:,:,imonth) = produs_avg * dtoff
       bgc_t_kbo_clim(:,:,imonth) = bgc_t_kbo_avg
       bgc_s_kbo_clim(:,:,imonth) = bgc_s_kbo_avg
       bgc_rho_kbo_clim(:,:,imonth) = bgc_rho_kbo_avg
@@ -296,10 +296,10 @@ subroutine prepare_clim(nstep)
       bgc_s_kbo_avg = bgc_s_kbo_avg / nstep_in_month
       bgc_rho_kbo_avg = bgc_rho_kbo_avg / nstep_in_month
       co3_kbo_avg = co3_kbo_avg / nstep_in_month
-      prorca_avg = prorca_avg / nstep_in_month * rdtsed
-      prcaca_avg = prcaca_avg / nstep_in_month * rdtsed
-      silpro_avg = silpro_avg / nstep_in_month * rdtsed
-      produs_avg = produs_avg / nstep_in_month * rdtsed
+      prorca_avg = prorca_avg / nstep_in_month / dtbgc
+      prcaca_avg = prcaca_avg / nstep_in_month / dtbgc
+      silpro_avg = silpro_avg / nstep_in_month / dtbgc
+      produs_avg = produs_avg / nstep_in_month / dtbgc
       nstep_in_month = 0
 
       ! Write tracer monthly averages to netCDF file
@@ -314,10 +314,10 @@ subroutine prepare_clim(nstep)
          ocetra_kbo_clim(:,:,:,nmonth) = ocetra_kbo_avg
          bolay_clim(:,:,nmonth) = bolay_avg
          keqb_clim(:,:,:,nmonth) = keqb_avg
-         prorca_clim(:,:,nmonth) = prorca_avg
-         prcaca_clim(:,:,nmonth) = prcaca_avg
-         silpro_clim(:,:,nmonth) = silpro_avg
-         produs_clim(:,:,nmonth) = produs_avg
+         prorca_clim(:,:,nmonth) = prorca_avg * dtoff
+         prcaca_clim(:,:,nmonth) = prcaca_avg * dtoff
+         silpro_clim(:,:,nmonth) = silpro_avg * dtoff
+         produs_clim(:,:,nmonth) = produs_avg * dtoff
          bgc_t_kbo_clim(:,:,nmonth) = bgc_t_kbo_avg
          bgc_s_kbo_clim(:,:,nmonth) = bgc_s_kbo_avg
          bgc_rho_kbo_clim(:,:,nmonth) = bgc_rho_kbo_avg
@@ -442,10 +442,10 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
             &     'sedmnt_offline(): nyear_global =', nyear_global
 
          do nmonth = 1, 12
-
-            ! set timestep lengths and set up sediment layers (much higher diffusion rate)
+            ! set up timesteps and sediment layers for stand-alone sediment
             dtoff = 3600*24*nd_in_m(nmonth)  !  time step length [sec].
-            dto = nd_in_m(nmonth)            !  time step length [days].
+            dtsed = dtoff
+            rdtsed = dtoff/dtbgc
             call bodensed(kpie,kpje,kpke,pddpo)
 
             call sediment_step(idm, jdm, kdm, bgc_dp, bgc_dx, bgc_dy,      &
@@ -492,7 +492,9 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
       if (mnproc == 1) write(io_stdo_bgc,*)                             &
          &     'sedmnt_offline(): stand-alone sediment spin-up ended'
 
-      ! set up sediment layers for normal MICOM/HAMOCC use
+      ! set up timesteps and sediment layers for normal MICOM/HAMOCC use
+      dtsed = dtbgc
+      rdtsed = 1.0
       call bodensed(kpie,kpje,kpke,pddpo)
 
       ! set calendar variables back to original values
