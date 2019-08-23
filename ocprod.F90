@@ -42,7 +42,7 @@
 !     *REAL*    *pddpo*   - size of scalar grid cell (3rd dimension) [m].
 !     *REAL*    *pdlxp*   - size of scalar grid cell (1st dimension) [m].
 !     *REAL*    *pdlyp*   - size of scalar grid cell (2nd dimension) [m].
-!     *REAL*    *pdpio*   - inverse size of grid cell (3rd dimension)[m].
+!     *REAL*    *pdpio*   - inverse size of grid cell (3rd dimension)[1/m].
 !     *REAL*    *ptiestu* - depth of layer centres
 !     *REAL*    *ptiestw* - depth of layer interfaces (upper boundary)
 !     *INTEGER* *kplmon*  - number of current month

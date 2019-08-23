@@ -212,8 +212,7 @@ do i = 1, kpie
          ocetra(i,j,kbo(i,j),isilica) = silsat - sediso(i,0)
       endif
       sedlay(i,j,1,issssil) =                                           &
-         &  sedlay(i,j,1,issssil) + silpro_(i,j) / (porsol(1)*seddw(1)) &
-         &                                       * rdtsed
+         &  sedlay(i,j,1,issssil) + silpro_(i,j) / (porsol(1)*seddw(1))
    endif
 enddo
 
@@ -287,8 +286,7 @@ do i = 1, kpie
          ocetra(i,j,kbo(i,j),ioxygen) = sediso(i,0)
       endif
       sedlay(i,j,1,issso12) = sedlay(i,j,1,issso12)                  &
-         &                  + prorca_(i,j) / (porsol(1)*seddw(1))    &
-         &                  * rdtsed
+         &                  + prorca_(i,j) / (porsol(1)*seddw(1))
 #ifdef __c_isotopes
       sedlay(i,j,1,issso13)                                     &
          &      = sedlay(i,j,1,issso13)+pror13(i,j)/(porsol(1)*seddw(1))
@@ -484,8 +482,7 @@ call powadi(j,kpie,kpje,solrat,sedb1,sediso,bolven,omask,bolay_)
 do i = 1, kpie
    if(omask(i,j) > 0.5) then
       sedlay(i,j,1,isssc12) = sedlay(i,j,1,isssc12)                  &
-         &                  + prcaca_(i,j) / (porsol(1)*seddw(1))    &
-         &                  * rdtsed
+         &                  + prcaca_(i,j) / (porsol(1)*seddw(1))
 #ifdef __c_isotopes
       sedlay(i,j,1,isssc13) = sedlay(i,j,1,isssc13)+prca13(i,j)/(porsol(1)*seddw(1))
       sedlay(i,j,1,isssc14) = sedlay(i,j,1,isssc14)+prca14(i,j)/(porsol(1)*seddw(1))
@@ -539,8 +536,7 @@ call dipowa(kpie,kpje,kpke,pdlxp,pdlyp,omask,                        &
 do j = 1, kpje
    do i = 1, kpie
       sedlay(i,j,1,issster) = sedlay(i,j,1,issster)                 &
-         &                  + produs_(i,j) / (porsol(1)*seddw(1))   &
-         &                  * rdtsed
+         &                  + produs_(i,j) / (porsol(1)*seddw(1))
    enddo
 enddo
 !$OMP END PARALLEL DO

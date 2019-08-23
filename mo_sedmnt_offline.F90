@@ -445,7 +445,6 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
             ! set up timesteps and sediment layers for stand-alone sediment
             dtoff = 3600*24*nd_in_m(nmonth)  !  time step length [sec].
             dtsed = dtoff
-            rdtsed = dtoff/dtbgc
             call bodensed(kpie,kpje,kpke,pddpo)
 
             call sediment_step(idm, jdm, kdm, bgc_dp, bgc_dx, bgc_dy,      &
@@ -494,7 +493,6 @@ subroutine sedmnt_offline(kpie, kpje, kpke, maxyear, nstep,            &
 
       ! set up timesteps and sediment layers for normal MICOM/HAMOCC use
       dtsed = dtbgc
-      rdtsed = 1.0
       call bodensed(kpie,kpje,kpke,pddpo)
 
       ! set calendar variables back to original values

@@ -48,7 +48,7 @@ use mo_bgcmean
 #if defined(SED_OFFLINE)
 use mo_sedmnt_offline, only: accsdm_offl, accbur_offl
 #endif
-use mo_control_bgc, only: io_stdo_bgc, dtsed, rdtsed, dtbgc, dtoff, lspinning_up_sed
+use mo_control_bgc, only: io_stdo_bgc, dtsed, dtbgc, dtoff, lspinning_up_sed
 use mo_param1_bgc
 use mo_sedmnt
 
@@ -95,10 +95,8 @@ integer, intent(in), optional :: jburssster_(nbgcmax)
 
 if (lspinning_up_sed) then
    dtsed = dtoff
-   rdtsed = dtoff/dtbgc
 else
    dtsed = dtbgc
-   rdtsed = 1.
 endif
 
 call powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,              &

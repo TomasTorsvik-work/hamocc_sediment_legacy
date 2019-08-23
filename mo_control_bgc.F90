@@ -40,7 +40,6 @@
       INTEGER :: ndtdaybgc        !  time steps per day.
       REAL    :: dtoff            !  off-line sediment time step length [sec].
       REAL    :: dtsed            !  sediment time step length [sec].
-      REAL    :: rdtsed           !  ratio of sediment over biogeochemistry time step.
 
       INTEGER :: ldtbgc           !  time step number from bgc restart file
       INTEGER :: ldtrunbgc        !  actual time steps of run.
