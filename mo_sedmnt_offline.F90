@@ -207,6 +207,10 @@ contains
 subroutine read_clim()
    integer             :: imonth
 
+   ! set up timesteps and sediment layers for stand-alone sediment
+   dtoff = 3600*24*nd_in_m(nmonth)  !  time step length [sec].
+   dtsed = dtoff
+
    ! Read the bottom seawater climatology from the netCDF forcing file
    if (mnproc == 1) write(io_stdo_bgc,*)                             &
       &        'read_clim(): starting bottom seawater climatology read loop'
@@ -251,11 +255,6 @@ subroutine prepare_clim(nstep)
    ! Local variables
    !
    character(len = 4) :: seqstring_year
-
-   if (nyear_global == 0) then
-      write(io_stdo_bgc,*) 'WARNING: Did not begin at the start of a year! &
-         & This should NOT happen, and will result in a broken climatology!'
-   endif
 
    ! Accumulate the bottom seawater fields from HAMOCC
    nstep_in_month  = nstep_in_month + 1

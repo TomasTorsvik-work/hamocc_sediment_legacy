@@ -56,14 +56,14 @@ c
      .            omask,nday_in_year,bgc_flxdms)
 c
 #ifdef SED_OFFLINE
+      call sedmnt_offline(idm, jdm, kdm, maxyear_sediment, nstep,
+     .                    bgc_dp, bgc_dx, bgc_dy, omask)
+c
 c     accumulate bottom water tracers when in
 c     the last year of MICOM/HAMOCC simulation
       if ( (lsed_wclim .or. lsed_spinup) .and. mod(nyear,maxyear_ocean)==0 ) then
          call prepare_clim(nstep)
       endif
-c
-      call sedmnt_offline(idm, jdm, kdm, maxyear_sediment, nstep,
-     .                    bgc_dp, bgc_dx, bgc_dy, omask)
 #endif
 c
       call hamocc2micom(m,n,mm,nn)
