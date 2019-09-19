@@ -281,7 +281,7 @@ subroutine prepare_clim(nstep)
    silpro_avg = silpro_avg + silpro
    produs_avg = produs_avg + produs
 
-   if ( nday==nd_in_m(nmonth) .and. mod(nstep,nstep_in_day)==17 ) then
+   if ( nday==nd_in_m(nmonth) .and. mod(nstep,nstep_in_day)==0 ) then
 
       ! Calculate tracer monthly average
       if (mnproc == 1) write(io_stdo_bgc,*)                             &

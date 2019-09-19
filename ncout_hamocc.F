@@ -48,14 +48,14 @@ c --- get file name
       else
          irec(iogrp)=irec(iogrp)+1
       endif
-      if (((fileann_bgc(iogrp).and.nday_of_year.eq.1.or.
-     .  filedec_bgc(iogrp).and.mod(nyear,10).eq.1.and.nday_of_year.eq.1.or.
-     .  filecen_bgc(iogrp).and.mod(nyear,100).eq.1.and.nday_of_year.eq.1.or.
-     .  filemil_bgc(iogrp).and.mod(nyear,1000).eq.1.and.nday_of_year.eq.1.or.
-     .  filemon_bgc(iogrp).and.nday.eq.1).and.mod(nstep,nstep_in_day)
+      if (((fileann_bgc(iogrp).and.nday_of_year.eq.nday_in_year.or.
+     .  filedec_bgc(iogrp).and.mod(nyear,10).eq.0.and.nday_of_year.eq.nday_in_year.or.
+     .  filecen_bgc(iogrp).and.mod(nyear,100).eq.0.and.nday_of_year.eq.nday_in_year.or.
+     .  filemil_bgc(iogrp).and.mod(nyear,1000).eq.0.and.nday_of_year.eq.nday_in_year.or.
+     .  filemon_bgc(iogrp).and.nday.eq.nd_in_m(nmonth)).and.mod(nstep,nstep_in_day)
      .  .le.1).or..not.(filemil_bgc(iogrp).or.filecen_bgc(iogrp).or.
      .  filedec_bgc(iogrp).or.fileann_bgc(iogrp).or.filemon_bgc(iogrp)).and.
-     .  mod(nstep+.5,filefq_bgc(iogrp)).lt.2.) then
+     .  mod(nstep+.5,filefq_bgc(iogrp)).lt.1.) then
         append2file(iogrp)=.false.
       endif
       if ( trim(fname(iogrp)) == "" .and. mnproc==1 ) then
@@ -73,6 +73,10 @@ c --- prepare output fields
       cmpflg=GLB_COMPFLAG(iogrp)
 c
 c --- create output file
+      if (mnproc.eq.1)
+     .   write (lp,'(2a)')
+     .    'Writing biogeochemical diagnostics to file: ',
+     .    path1(1:path1_len)//fname(iogrp)
       if (GLB_NCFORMAT(iogrp).eq.1) then
         call ncfopn(path1(1:path1_len)//fname(iogrp),'w','6',
      .    irec(iogrp),iotype)

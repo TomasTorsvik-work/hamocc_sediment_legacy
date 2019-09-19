@@ -274,9 +274,9 @@ c
               else
                  mymonth = 12
               endif
-              call pstdat(ny,nm,nd,nd_in_m(mymonth))
+              call pstdat(ny,nm,nd,nd_in_m(nmonth-1))
             else
-              call pstdat(ny,nm,nd,nint(diagfq))
+              call pstdat(ny,nm,nd,nint(diagfq)-1)
             endif
           endif
           if (filemon) then
@@ -1708,15 +1708,14 @@ c --- create file name
       else
         irec(iogrp)=irec(iogrp)+1
       endif
-      if (((fileann_phy(iogrp).and.nday_of_year.eq.1.or.
-     .  filedec_phy(iogrp).and.mod(nyear,10).eq.1.and.nday_of_year.eq.1.or.
-     .  filecen_phy(iogrp).and.mod(nyear,100).eq.1.and.nday_of_year.eq.1.or.
-     .  filemil_phy(iogrp).and.mod(nyear,1000).eq.1.and.nday_of_year.eq.1.or.
-     .  filemon_phy(iogrp).and.nday.eq.1).and.mod(nstep,nstep_in_day)
+      if (((fileann_phy(iogrp).and.nday_of_year.eq.nday_in_year.or.
+     .  filedec_phy(iogrp).and.mod(nyear,10).eq.0.and.nday_of_year.eq.nday_in_year.or.
+     .  filecen_phy(iogrp).and.mod(nyear,100).eq.0.and.nday_of_year.eq.nday_in_year.or.
+     .  filemil_phy(iogrp).and.mod(nyear,1000).eq.0.and.nday_of_year.eq.nday_in_year.or.
+     .  filemon_phy(iogrp).and.nday.eq.nd_in_m(nmonth)).and.mod(nstep,nstep_in_day)
      .  .le.1).or..not.(filemil_phy(iogrp).or.filecen_phy(iogrp).or.
      .  filedec_phy(iogrp).or.fileann_phy(iogrp).or.filemon_phy(iogrp)).and.
-     .  mod(nstep+.5,filefq_phy(iogrp)).lt.2.) then
-        !FIXME: 2 in ncout_hamocc.F; 1 originally here in mod_dia.F.
+     .  mod(nstep+.5,filefq_phy(iogrp)).lt.1.) then
         append2file(iogrp)=.false.
       endif
 c
