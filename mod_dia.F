@@ -274,7 +274,7 @@ c
               else
                  mymonth = 12
               endif
-              call pstdat(ny,nm,nd,nd_in_m(nmonth-1))
+              call pstdat(ny,nm,nd,nd_in_m(nmonth)-1)
             else
               call pstdat(ny,nm,nd,nint(diagfq)-1)
             endif
