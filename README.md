@@ -4,7 +4,7 @@ This is a legacy sediment code for HAMOCC, converted from a mercurial repository
 ## Conversion of source code from mercurial to git
 The procedure for converting the mercurial repository to git follows the outline in the [Migrating to Git](https://git-scm.com/book/en/v2/Git-and-Other-Systems-Migrating-to-Git) chapter from the [Pro Git book](https://git-scm.com/book/en/v2), written by Scott Chacon and Ben Straub and published by Apress.
 
-The conversion was done by use of the [hg-fast-export](https://github.com/frej/fast-export.git) tool (version [44c50d0](https://github.com/frej/fast-export/commit/44c50d0fae5697ab9cdb05d0e484b97edda31042)).
+The conversion was done by use of the [hg-fast-export](https://github.com/frej/fast-export.git) tool (version [44c50d0](https://github.com/frej/fast-export/tree/44c50d0fae5697ab9cdb05d0e484b97edda31042)).
 
 __Essential steps:__
 
