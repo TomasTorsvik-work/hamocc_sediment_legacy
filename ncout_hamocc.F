@@ -53,7 +53,7 @@ c --- get file name
      .  filecen_bgc(iogrp).and.mod(nyear,100).eq.0.and.nday_of_year.eq.nday_in_year.or.
      .  filemil_bgc(iogrp).and.mod(nyear,1000).eq.0.and.nday_of_year.eq.nday_in_year.or.
      .  filemon_bgc(iogrp).and.nday.eq.nd_in_m(nmonth)).and.mod(nstep,nstep_in_day)
-     .  .le.1).or..not.(filemil_bgc(iogrp).or.filecen_bgc(iogrp).or.
+     .  .eq.17).or..not.(filemil_bgc(iogrp).or.filecen_bgc(iogrp).or.
      .  filedec_bgc(iogrp).or.fileann_bgc(iogrp).or.filemon_bgc(iogrp)).and.
      .  mod(nstep+.5,filefq_bgc(iogrp)).lt.1.) then
         append2file(iogrp)=.false.

@@ -58,7 +58,7 @@ subroutine powach(kpie,kpje,kpke,pdlxp,pdlyp,psao_,prho_,omask,        &
 ! We chose them to make them immutible, using INTENT(IN), since relevant
 ! to be updated coupled model variables prorca, prcaca, silpro and produs
 ! are available anyway through mo_sedmnt.  Therefore we update those
-! directly instead of the dummy variable outside the lspinning_up case.
+! directly instead of the dummy variable outside the lspinning_up_sed case.
 ! In this case both the dummy prorca_ and prorca point to the same
 ! address, so it doesn't matter to which we assign values.
 ! We could overload the INTENT, possibly through an optional logical

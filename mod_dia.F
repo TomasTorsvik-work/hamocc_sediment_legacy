@@ -1713,7 +1713,7 @@ c --- create file name
      .  filecen_phy(iogrp).and.mod(nyear,100).eq.1.and.nday_of_year.eq.1.or.
      .  filemil_phy(iogrp).and.mod(nyear,1000).eq.1.and.nday_of_year.eq.1.or.
      .  filemon_phy(iogrp).and.nday.eq.1).and.mod(nstep,nstep_in_day)
-     .  .le.1).or..not.(filemil_phy(iogrp).or.filecen_phy(iogrp).or.
+     .  .eq.0).or..not.(filemil_phy(iogrp).or.filecen_phy(iogrp).or.
      .  filedec_phy(iogrp).or.fileann_phy(iogrp).or.filemon_phy(iogrp)).and.
      .  mod(nstep+.5,filefq_phy(iogrp)).lt.1.) then
         append2file(iogrp)=.false.
