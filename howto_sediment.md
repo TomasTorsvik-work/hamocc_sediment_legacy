@@ -131,8 +131,3 @@ At the time of writing there are several issues with this burst coupling.
 - Ocean--sediment fluxes stored to the bottom-water climatology are not
   identical to the same fields stored by HAMOCC.
 
-## Copying
-
-Copyright 2020 Marco van Hulten <Marco.Hulten@uib.no>
-This documentation is licensed under a ShareAlike 4.0 International License.
-To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/.
